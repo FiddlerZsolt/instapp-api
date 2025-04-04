@@ -93,24 +93,9 @@ const logger = winston.createLogger({
   level: process.env.LOG_LEVEL || 'info',
   format: combine(timestamp(), json()),
   transports: [
-    /**
-     * Console transport
-     */
     new winston.transports.Console({
-      format: combine(
-        // colorize({ all: true }),
-        // timestamp({
-        //   format: 'YYYY-MM-DD hh:mm:ss.SSS A',
-        // }),
-        printf((data) => generateLogTable(data))
-        // printf((info) => {
-        //   return `${info.timestamp} ${info.level}: ${info.message}`;
-        // })
-      ),
+      format: combine(printf((data) => generateLogTable(data))),
     }),
-    /**
-     * File transport
-     */
     new winston.transports.File({
       filename: path.join(__dirname, '../../storage/logs/error.log'),
       level: 'error',

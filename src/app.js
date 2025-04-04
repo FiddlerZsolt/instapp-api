@@ -12,8 +12,6 @@ import { NotFoundError } from './utils/errors.js';
 
 // Import route files
 import authRoutes from './routes/auth.js';
-import userRoutes from './routes/users.js';
-import postRoutes from './routes/posts.js';
 import deviceRoutes from './routes/devices.js';
 import { addRouteGroup, routeGroup } from './utils/utils.js';
 
