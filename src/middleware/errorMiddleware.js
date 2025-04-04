@@ -6,6 +6,7 @@ import { ApiError } from '../utils/errors.js';
  */
 function errorHandler(err, req, res, next) {
   // Log the error for debugging purposes
+  console.error(err);
 
   // Default error status and message
   let statusCode = 500;

@@ -18,7 +18,7 @@ export default (sequelize, DataTypes) => {
   Device.init(
     {
       platform: {
-        type: DataTypes.STRING,
+        type: DataTypes.ENUM('ios', 'android'),
         allowNull: false,
       },
       deviceName: {
@@ -33,9 +33,19 @@ export default (sequelize, DataTypes) => {
         type: DataTypes.STRING,
         allowNull: false,
       },
+      isActive: {
+        type: DataTypes.BOOLEAN,
+        defaultValue: true,
+        defaultValue: true,
+      },
       user_id: {
         type: DataTypes.INTEGER,
-        allowNull: false,
+        allowNull: true,
+        references: {
+          model: 'Users',
+          key: 'id',
+        },
+        defaultValue: null,
       },
     },
     {

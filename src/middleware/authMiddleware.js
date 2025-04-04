@@ -22,7 +22,7 @@ export const authorization = async (req, res, next) => {
       });
 
       if (!user) {
-        throw new UnauthorizedError('Not authorized, user not found', 'USER_NOT_FOUND');
+        throw new UnauthorizedError();
       }
 
       // Add user to request object
@@ -47,7 +47,7 @@ export const authorization = async (req, res, next) => {
       });
 
       if (!device || !device.user) {
-        throw new UnauthorizedError('Not authorized, invalid API token', 'INVALID_API_TOKEN');
+        throw new UnauthorizedError();
       }
 
       // Add user and device to request object
@@ -57,7 +57,7 @@ export const authorization = async (req, res, next) => {
     }
 
     // If no token was found
-    throw new UnauthorizedError('Not authorized, no token', 'NO_TOKEN');
+    throw new UnauthorizedError();
   } catch (error) {
     // If error is already one of our custom errors, pass it along
     if (error.statusCode) {
@@ -66,11 +66,11 @@ export const authorization = async (req, res, next) => {
 
     // Convert JWT errors to our custom error format
     if (error.name === 'JsonWebTokenError') {
-      return next(new UnauthorizedError('Not authorized, invalid token', 'INVALID_TOKEN'));
+      return next(new UnauthorizedError());
     }
 
     if (error.name === 'TokenExpiredError') {
-      return next(new UnauthorizedError('Not authorized, token expired', 'TOKEN_EXPIRED'));
+      return next(new UnauthorizedError());
     }
 
     // Pass any other errors to the error handler
@@ -82,7 +82,7 @@ export const authorization = async (req, res, next) => {
 export const hasRoles = (roles = []) => {
   return (req, res, next) => {
     if (!req.user) {
-      return next(new UnauthorizedError('User not authenticated', 'NOT_AUTHENTICATED'));
+      return next(new UnauthorizedError());
     }
 
     if (roles.length === 0) {
@@ -91,7 +91,7 @@ export const hasRoles = (roles = []) => {
 
     // Assuming user object has a 'role' property
     if (!roles.includes(req.user.role)) {
-      return next(new ForbiddenError('Not authorized to access this resource', 'INSUFFICIENT_PERMISSIONS'));
+      return next(new ForbiddenError());
     }
 
     next();
