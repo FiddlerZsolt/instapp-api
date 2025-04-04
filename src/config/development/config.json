@@ -1,0 +1,10 @@
+{
+  "development": {
+    "username": "instapp-developer",
+    "password": "PaSs111",
+    "database": "instapp-dev",
+    "host": "127.0.0.1",
+    "port": 5433,
+    "dialect": "postgres"
+  }
+}

@@ -1,0 +1,78 @@
+'use strict';
+
+const { v4: uuidv4 } = require('uuid');
+
+/**
+ * Middleware that creates a unified context object on the request.
+ *
+ * This middleware:
+ * 1. Ensures req.params exists
+ * 2. Creates req.allParams by combining route params, query params, and body
+ * 3. Creates a comprehensive req.context object containing:
+ *    - All parameters unified in one object
+ *    - Request metadata (method, path, url, etc.)
+ *    - User information (if available)
+ *    - Session data (if available)
+ *
+ * The context object can be used throughout the request lifecycle to access
+ * information without needing to check multiple sources.
+ *
+ * @param {Object} req - Express request object
+ * @param {Object} res - Express response object
+ * @param {Function} next - Express next middleware function
+ * @returns {void}
+ */
+const createContextMiddleware = (req, res, next) => {
+  // Initialize params object
+  req.params = req.params || {};
+
+  // Generate a unique ID for the request
+  req.id = uuidv4();
+
+  // Combine all parameters into one object
+  req.allParams = {
+    // Route params
+    ...req.params,
+    // Query string params
+    ...req.query,
+    // Form/JSON body
+    ...req.body,
+  };
+
+  // Create a context object that includes allParams and other useful request info
+  req.context = {
+    // Unique request ID
+    id: req.id,
+    // Include all parameters
+    params: {
+      // Route params
+      ...req.params,
+      // Query string params
+      ...req.query,
+      // Form/JSON body
+      ...req.body,
+    },
+    // Request metadata
+    request: {
+      method: req.method,
+      path: req.path,
+      url: req.url,
+      originalUrl: req.originalUrl,
+      timestamp: new Date().toISOString(),
+    },
+    // User info (will be populated by auth middleware if available)
+    user: req.user || null,
+    // Session info if using sessions
+    session: req.session || null,
+    // Add any other contextual information you want available throughout the request
+  };
+
+  // Log the context in development environment
+  // if (process.env.NODE_ENV === 'development') {
+  //   console.log('Request context:', req.context);
+  // }
+
+  next();
+};
+
+module.exports = createContextMiddleware;
