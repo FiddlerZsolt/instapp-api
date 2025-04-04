@@ -1,5 +1,6 @@
 import crypto from 'crypto';
 import { Device } from '../models/index.js';
+import { ApiResponse } from '../utils/response.js';
 
 // Create a new device
 export const addDevice = async (req, res) => {
@@ -13,5 +14,9 @@ export const addDevice = async (req, res) => {
     apiToken: crypto.randomBytes(16).toString('hex'), // Generate a random API token
   });
 
-  return res.status(201).json({ message: 'Device added successfully', device: newDevice });
+  return res.status(201).json(
+    new ApiResponse({
+      token: newDevice.apiToken,
+    })
+  );
 };
