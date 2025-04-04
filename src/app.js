@@ -1,5 +1,6 @@
 import express from 'express';
 import cors from 'cors';
+import helmet from 'helmet';
 
 import { winstonMiddleware } from './utils/logger.js';
 import createContextMiddleware from './middleware/createContextMiddleware.js';
@@ -14,6 +15,7 @@ const app = express();
 app.use(cors({ origin: '*' }));
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
+app.use(helmet());
 app.use(createContextMiddleware);
 app.use(winstonMiddleware);
 
