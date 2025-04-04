@@ -107,7 +107,7 @@ class ServiceUnavailableError extends ApiError {
   }
 }
 
-module.exports = {
+export {
   ApiError,
   BadRequestError,
   UnauthorizedError,

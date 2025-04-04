@@ -1,7 +1,7 @@
-const app = require('./src/app');
-const http = require('http');
-const { sequelize } = require('./src/models');
-const { logger } = require('./src/utils/logger');
+import app from './src/app.js';
+import http from 'http';
+import { sequelize } from './src/models/index.js';
+import { logger } from './src/utils/logger.js';
 
 // Get port from environment and store in Express
 const port = process.env.PORT || 3000;

@@ -1,9 +1,14 @@
-const winston = require('winston');
-const { combine, timestamp, colorize, align, printf, json } = winston.format;
-const path = require('path');
-const { env } = require('process');
-const { response } = require('../app');
-// import chalk from 'chalk';
+import winston from 'winston';
+import path from 'path';
+import { fileURLToPath } from 'url';
+import { env } from 'process';
+import chalk from 'chalk';
+
+const { combine, timestamp, printf, json } = winston.format;
+
+// Get directory name in ESM
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 const errorTypeFilter = (type) => {
   return winston.format((info) => {
@@ -29,35 +34,36 @@ const generateLogTable = (data) => {
     joinLeft: '┤',
   };
 
-  // let color;
-  // switch (level) {
-  //   case 'error':
-  //     color = chalk.red;
-  //     break;
-  //   case 'warn':
-  //     color = chalk.yellow;
-  //     break;
-  //   case 'info':
-  //     color = chalk.white;
-  //     break;
-  //   case 'debug':
-  //     color = chalk.blue;
-  //     break;
-  //   default:
-  //     color = chalk.white;
+  let color;
+  switch (level) {
+    case 'error':
+      color = chalk.red;
+      break;
+    case 'warn':
+      color = chalk.yellow;
+      break;
+    case 'info':
+      color = chalk.whiteBright;
+      break;
+    case 'debug':
+      color = chalk.blue;
+      break;
+    default:
+      color = chalk.white;
+  }
+
+  // if (env === undefined) {
+  //   return;
   // }
 
-  console.log('\n\nenv.length');
-  console.log(env, env.length);
-  console.log('\n\n');
-
   // Format environment text with truncation if needed
-  const envText = env.length > 17 ? `${env.slice(0, 17)}...` : env;
+  // const envText = env.length > 17 ? `${env.slice(0, 17)}...` : env;
 
   // Create header components
   const timeInfo = `${currentDateTime.toISOString()}`;
-  const envInfo = `${envText}`;
-  const environtmentInfoPadding = tableWidth - timeInfo.length - envInfo.length - 3;
+  // const envInfo = `${envText}`;
+  // const environtmentInfoPadding = tableWidth - timeInfo.length - envInfo.length - 3;
+  const environtmentInfoPadding = tableWidth - timeInfo.length - 2;
 
   const headerInfo = `ID: ${requestId}`;
   const responseInfo = `${responseTime}ms`;
@@ -67,18 +73,18 @@ const generateLogTable = (data) => {
   const requestInfo = `<= ${statusCode} ${method} ${url}`;
   const contentPadding = tableWidth - requestInfo.length - 2;
 
-  return (
+  return color(
     // Time and environment info
     `${chars.topLeft}${chars.horizontal.repeat(tableWidth)}${chars.topRight}\n` +
-    `${chars.vertical} ${timeInfo}${' '.repeat(environtmentInfoPadding)} ${envInfo} ${chars.vertical}\n` +
-    `${chars.vertical}${' '.repeat(tableWidth)}${chars.vertical}\n` +
-    // Header info
-    `${chars.vertical} ${headerInfo}${' '.repeat(headerPadding)}${responseInfo} ${chars.vertical}\n` +
-    `${chars.joinRight}${chars.horizontal.repeat(tableWidth)}${chars.joinLeft}\n` +
-    // Request info
-    `${chars.vertical} ${requestInfo}${' '.repeat(contentPadding)} ${chars.vertical}\n` +
-    // Bottom line
-    `${chars.bottomLeft}${chars.horizontal.repeat(tableWidth)}${chars.bottomRight}`
+      `${chars.vertical} ${timeInfo}${' '.repeat(environtmentInfoPadding)} ${chars.vertical}\n` +
+      `${chars.vertical}${' '.repeat(tableWidth)}${chars.vertical}\n` +
+      // Header info
+      `${chars.vertical} ${headerInfo}${' '.repeat(headerPadding)}${responseInfo} ${chars.vertical}\n` +
+      `${chars.joinRight}${chars.horizontal.repeat(tableWidth)}${chars.joinLeft}\n` +
+      // Request info
+      `${chars.vertical} ${requestInfo}${' '.repeat(contentPadding)} ${chars.vertical}\n` +
+      // Bottom line
+      `${chars.bottomLeft}${chars.horizontal.repeat(tableWidth)}${chars.bottomRight}`
   );
 };
 
@@ -131,11 +137,11 @@ const winstonMiddleware = (req, res, next) => {
       url: req.url,
       env: env.NODE_ENV || 'development',
       headers: req.headers,
-      body: req.body,
       params: req.context.params,
       responseTime: duration,
       statusCode: res.statusCode,
       statusMessage: res.statusMessage,
+      body: req.body,
     };
 
     // Log the request using winston
@@ -144,7 +150,4 @@ const winstonMiddleware = (req, res, next) => {
   next();
 };
 
-module.exports = {
-  logger,
-  winstonMiddleware,
-};
+export { logger, winstonMiddleware };

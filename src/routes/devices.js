@@ -1,7 +1,8 @@
-const express = require('express');
+import express from 'express';
+import * as deviceController from '../controllers/deviceController.js';
+import { authorization } from '../middleware/authMiddleware.js';
+
 const router = express.Router();
-const deviceController = require('../controllers/deviceController');
-const { authorization } = require('../middleware/authMiddleware');
 
 // All routes are protected by the auth middleware
 router.use(authorization);
@@ -21,4 +22,4 @@ router.delete('/:id', deviceController.removeDevice);
 // Refresh a device's API token
 router.post('/:id/refresh-token', deviceController.refreshDeviceToken);
 
-module.exports = router;
+export default router;

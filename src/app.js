@@ -1,16 +1,21 @@
-const express = require('express');
-const path = require('path');
-const dotenv = require('dotenv');
-const cors = require('cors');
-const { v4: uuidv4 } = require('uuid');
-const { logger, winstonMiddleware } = require('./utils/logger');
+import express from 'express';
+import path from 'path';
+import { fileURLToPath } from 'url';
+import dotenv from 'dotenv';
+import cors from 'cors';
+import { v4 as uuidv4 } from 'uuid';
+import { logger, winstonMiddleware } from './utils/logger.js';
 
-const errorHandler = require('./middleware/errorMiddleware');
-const createContextMiddleware = require('./middleware/createContextMiddleware');
-const { NotFoundError } = require('./utils/errors');
+import errorHandler from './middleware/errorMiddleware.js';
+import createContextMiddleware from './middleware/createContextMiddleware.js';
+import { NotFoundError } from './utils/errors.js';
 
 // Load environment variables
 dotenv.config();
+
+// Get directory name in ESM
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 const PUBLIC_FOLDER = path.resolve(__dirname, '../', 'public');
 
@@ -33,11 +38,17 @@ app.use(winstonMiddleware);
 // Serve static files
 app.use(express.static(PUBLIC_FOLDER));
 
-// Import and use route files
-app.use('/api/auth', require('./routes/auth'));
-app.use('/api/users', require('./routes/users'));
-app.use('/api/posts', require('./routes/posts'));
-app.use('/api/devices', require('./routes/devices'));
+// Import route files
+import authRoutes from './routes/auth.js';
+import userRoutes from './routes/users.js';
+import postRoutes from './routes/posts.js';
+import deviceRoutes from './routes/devices.js';
+
+// Use route files
+app.use('/api/devices', deviceRoutes);
+app.use('/api', authRoutes);
+// app.use('/api/users', userRoutes);
+// app.use('/api/posts', postRoutes);
 
 // Now you can use Winston logger in your app
 app.get('/', (req, res) => {
@@ -62,4 +73,4 @@ app.use((err, req, res, next) => {
   res.status(500).send('Something broke!');
 });
 
-module.exports = app;
+export default app;

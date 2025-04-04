@@ -1,10 +1,11 @@
 {
   "name": "1.-new",
   "version": "1.0.0",
+  "type": "module",
   "main": "index.js",
   "scripts": {
-    "start": "node -r dotenv/config index.js",
-    "start:dev": "nodemon -r dotenv/config index.js",
+    "start": "node --env-file=.env index.js",
+    "start:dev": "nodemon --env-file=.env index.js",
     "db:migrate:dev": "npx sequelize db:migrate --env development --config ./src/config/development/config.json",
     "db:migrate:dev:undo:all": "npx sequelize db:migrate:undo:all --env development --config ./src/config/development/config.json"
   },

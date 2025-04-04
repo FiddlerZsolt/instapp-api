@@ -1,6 +1,6 @@
 'use strict';
 
-const { v4: uuidv4 } = require('uuid');
+import { v4 as uuidv4 } from 'uuid';
 
 /**
  * Middleware that creates a unified context object on the request.
@@ -67,12 +67,7 @@ const createContextMiddleware = (req, res, next) => {
     // Add any other contextual information you want available throughout the request
   };
 
-  // Log the context in development environment
-  // if (process.env.NODE_ENV === 'development') {
-  //   console.log('Request context:', req.context);
-  // }
-
   next();
 };
 
-module.exports = createContextMiddleware;
+export default createContextMiddleware;

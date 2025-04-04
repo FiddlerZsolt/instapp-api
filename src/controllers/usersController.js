@@ -1,7 +1,7 @@
-const { User } = require('../models');
+import { User } from '../models/index.js';
 
 // Get all users
-exports.getAllUsers = async (req, res) => {
+export const getAllUsers = async (req, res) => {
   try {
     const users = await User.findAll({
       attributes: { exclude: ['password'] }, // Don't return passwords
@@ -14,7 +14,7 @@ exports.getAllUsers = async (req, res) => {
 };
 
 // Get user by ID
-exports.getUserById = async (req, res) => {
+export const getUserById = async (req, res) => {
   try {
     const user = await User.findByPk(req.params.id, {
       attributes: { exclude: ['password'] },
@@ -32,7 +32,7 @@ exports.getUserById = async (req, res) => {
 };
 
 // Create a new user
-exports.createUser = async (req, res) => {
+export const createUser = async (req, res) => {
   try {
     const user = await User.create(req.body);
 
@@ -48,7 +48,7 @@ exports.createUser = async (req, res) => {
 };
 
 // Update user
-exports.updateUser = async (req, res) => {
+export const updateUser = async (req, res) => {
   try {
     const user = await User.findByPk(req.params.id);
 
@@ -70,7 +70,7 @@ exports.updateUser = async (req, res) => {
 };
 
 // Delete user
-exports.deleteUser = async (req, res) => {
+export const deleteUser = async (req, res) => {
   try {
     const user = await User.findByPk(req.params.id);
 

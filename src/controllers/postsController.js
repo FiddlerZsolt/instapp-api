@@ -1,7 +1,7 @@
-const { Post, User, Like } = require('../models');
+import { Post, User, Like } from '../models/index.js';
 
 // Get all posts
-exports.getAllPosts = async (req, res) => {
+export const getAllPosts = async (req, res) => {
   try {
     const posts = await Post.findAll({
       include: [
@@ -26,7 +26,7 @@ exports.getAllPosts = async (req, res) => {
 };
 
 // Get post by ID
-exports.getPostById = async (req, res) => {
+export const getPostById = async (req, res) => {
   try {
     const post = await Post.findByPk(req.params.id, {
       include: [
@@ -55,7 +55,7 @@ exports.getPostById = async (req, res) => {
 };
 
 // Create a new post
-exports.createPost = async (req, res) => {
+export const createPost = async (req, res) => {
   try {
     // Add the authenticated user's ID to the post data
     const postData = {
@@ -72,7 +72,7 @@ exports.createPost = async (req, res) => {
 };
 
 // Update post
-exports.updatePost = async (req, res) => {
+export const updatePost = async (req, res) => {
   try {
     const post = await Post.findByPk(req.params.id);
 
@@ -94,7 +94,7 @@ exports.updatePost = async (req, res) => {
 };
 
 // Delete post
-exports.deletePost = async (req, res) => {
+export const deletePost = async (req, res) => {
   try {
     const post = await Post.findByPk(req.params.id);
 
@@ -116,7 +116,7 @@ exports.deletePost = async (req, res) => {
 };
 
 // Like a post
-exports.likePost = async (req, res) => {
+export const likePost = async (req, res) => {
   try {
     const post = await Post.findByPk(req.params.id);
 
@@ -153,7 +153,7 @@ exports.likePost = async (req, res) => {
 };
 
 // Unlike a post
-exports.unlikePost = async (req, res) => {
+export const unlikePost = async (req, res) => {
   try {
     const post = await Post.findByPk(req.params.id);
 

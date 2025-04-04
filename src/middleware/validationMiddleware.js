@@ -1,8 +1,9 @@
-const Validator = require('fastest-validator');
-const { ValidationError } = require('../utils/errors');
+import Validator from 'fastest-validator';
+import { ValidationError } from '../utils/errors.js';
+
 const v = new Validator();
 
-exports.validate = (schema) => {
+export const validate = (schema) => {
   return (req, res, next) => {
     if (!schema) {
       // If no schema is provided, skip validation

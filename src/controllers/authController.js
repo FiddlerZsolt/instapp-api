@@ -1,90 +1,85 @@
-const bcrypt = require('bcryptjs');
-const jwt = require('jsonwebtoken');
-const crypto = require('crypto');
-const { User, Device } = require('../models');
-const { logger } = require('../utils/logger');
+import bcrypt from 'bcryptjs';
+import jwt from 'jsonwebtoken';
+import crypto from 'crypto';
+import { User, Device } from '../models/index.js';
+import { logger } from '../utils/logger.js';
 
 // JWT secret key - in a real app, this would be in an environment variable
 const JWT_SECRET = process.env.JWT_SECRET || 'your_jwt_secret_key';
 
 // Register a new user
-exports.register = async (req, res) => {
-  try {
-    const { name, username, email, password, platform, deviceName } = req.context.params;
+export const register = async (req, res) => {
+  const { name, username, email, password, platform, deviceName } = req.context.params;
 
-    // Validate input
-    if (!username || !email || !password) {
-      return res.status(400).json({
-        message: 'Please provide username, email and password',
-      });
-    }
-
-    if (!platform || !deviceName) {
-      return res.status(400).json({
-        message: 'Please provide platform and deviceName',
-      });
-    }
-
-    // Check if user already exists
-    const userExists = await User.findOne({ where: { email } });
-    if (userExists) {
-      return res.status(400).json({
-        message: 'User with this email already exists',
-      });
-    }
-
-    // Hash password
-    const salt = await bcrypt.genSalt(10);
-    const hashedPassword = await bcrypt.hash(password, salt);
-
-    // Create user
-    const user = await User.create({
-      username,
-      email,
-      password: hashedPassword,
-      name: name || username, // Using username as name if not provided
-      profile_image: '', // Default empty profile image
+  // Validate input
+  if (!username || !email || !password) {
+    return res.status(400).json({
+      message: 'Please provide username, email and password',
     });
-
-    // Create JWT token for authentication
-    const token = jwt.sign({ id: user.id, username: user.username, email: user.email }, JWT_SECRET, {
-      expiresIn: '30d',
-    });
-
-    // Generate API token for the device
-    const apiToken = crypto.randomBytes(32).toString('hex');
-
-    // Create device record
-    const device = await Device.create({
-      platform,
-      deviceName,
-      token: token,
-      apiToken: apiToken,
-      user_id: user.id,
-    });
-
-    // Return user info, token and device info
-    const userResponse = user.toJSON();
-    delete userResponse.password;
-
-    res.status(201).json({
-      user: userResponse,
-      token,
-      device: {
-        id: device.id,
-        platform: device.platform,
-        deviceName: device.deviceName,
-        apiToken: device.apiToken,
-      },
-    });
-  } catch (err) {
-    logger.error(err);
-    res.status(500).json({ message: 'Server error' });
   }
+
+  if (!platform || !deviceName) {
+    return res.status(400).json({
+      message: 'Please provide platform and deviceName',
+    });
+  }
+
+  // Check if user already exists
+  const userExists = await User.findOne({ where: { email } });
+  if (userExists) {
+    return res.status(400).json({
+      message: 'User with this email already exists',
+    });
+  }
+
+  // Hash password
+  const salt = await bcrypt.genSalt(10);
+  const hashedPassword = await bcrypt.hash(password, salt);
+
+  // Create user
+  const user = await User.create({
+    username,
+    email,
+    password: hashedPassword,
+    name: name || username, // Using username as name if not provided
+    profile_image: '', // Default empty profile image
+  });
+
+  // Create JWT token for authentication
+  const token = jwt.sign({ id: user.id, username: user.username, email: user.email }, JWT_SECRET, {
+    expiresIn: '30d',
+  });
+
+  // Generate API token for the device
+  const apiToken = crypto.randomBytes(32).toString('hex');
+
+  // Create device record
+  const device = await Device.create({
+    platform,
+    deviceName,
+    token: token,
+    apiToken: apiToken,
+    user_id: user.id,
+  });
+
+  // Return user info, token and device info
+  const userResponse = user.toJSON();
+  delete userResponse.password;
+
+  res.status(201).json({
+    user: userResponse,
+    token,
+    device: {
+      id: device.id,
+      platform: device.platform,
+      deviceName: device.deviceName,
+      apiToken: device.apiToken,
+    },
+  });
 };
 
 // Login user
-exports.login = async (req, res) => {
+export const login = async (req, res) => {
   try {
     const { email, password, platform, deviceName } = req.body;
 
@@ -175,7 +170,7 @@ exports.login = async (req, res) => {
 };
 
 // Get current user
-exports.getCurrentUser = async (req, res) => {
+export const getCurrentUser = async (req, res) => {
   try {
     const user = await User.findByPk(req.user.id, {
       attributes: { exclude: ['password'] },

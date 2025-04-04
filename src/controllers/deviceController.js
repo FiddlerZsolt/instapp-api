@@ -1,8 +1,8 @@
-const crypto = require('crypto');
-const { Device } = require('../models');
+import crypto from 'crypto';
+import { Device } from '../models/index.js';
 
 // Get all devices for a user
-exports.getUserDevices = async (req, res) => {
+export const getUserDevices = async (req, res) => {
   try {
     const devices = await Device.findAll({
       where: { user_id: req.user.id },
@@ -17,7 +17,7 @@ exports.getUserDevices = async (req, res) => {
 };
 
 // Get a single device by ID
-exports.getDeviceById = async (req, res) => {
+export const getDeviceById = async (req, res) => {
   try {
     const device = await Device.findOne({
       where: {
@@ -39,7 +39,7 @@ exports.getDeviceById = async (req, res) => {
 };
 
 // Add a new device for a user
-exports.addDevice = async (req, res) => {
+export const addDevice = async (req, res) => {
   try {
     const { platform, deviceName } = req.body;
 
@@ -91,7 +91,7 @@ exports.addDevice = async (req, res) => {
 };
 
 // Remove a device
-exports.removeDevice = async (req, res) => {
+export const removeDevice = async (req, res) => {
   try {
     const device = await Device.findOne({
       where: {
@@ -113,7 +113,7 @@ exports.removeDevice = async (req, res) => {
 };
 
 // Refresh API token for a device
-exports.refreshDeviceToken = async (req, res) => {
+export const refreshDeviceToken = async (req, res) => {
   try {
     const device = await Device.findOne({
       where: {

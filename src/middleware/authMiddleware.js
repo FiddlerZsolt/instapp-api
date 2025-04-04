@@ -1,11 +1,11 @@
-const jwt = require('jsonwebtoken');
-const { User, Device } = require('../models');
-const { UnauthorizedError, ForbiddenError } = require('../utils/errors');
+import jwt from 'jsonwebtoken';
+import { User, Device } from '../models/index.js';
+import { UnauthorizedError, ForbiddenError } from '../utils/errors.js';
 
 // JWT secret key - in a real app, this would be in an environment variable
 const JWT_SECRET = process.env.JWT_SECRET || 'your_jwt_secret_key';
 
-exports.authorization = async (req, res, next) => {
+export const authorization = async (req, res, next) => {
   try {
     let token;
 
@@ -79,7 +79,7 @@ exports.authorization = async (req, res, next) => {
 };
 
 // Middleware to check if user has specific roles
-exports.hasRoles = (roles = []) => {
+export const hasRoles = (roles = []) => {
   return (req, res, next) => {
     if (!req.user) {
       return next(new UnauthorizedError('User not authenticated', 'NOT_AUTHENTICATED'));
