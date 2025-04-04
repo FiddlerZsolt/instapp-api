@@ -1,7 +1,6 @@
 import app from './src/app.js';
 import http from 'http';
 import { sequelize } from './src/models/index.js';
-import { logger } from './src/utils/logger.js';
 
 // Get port from environment and store in Express
 const port = process.env.PORT || 3000;
@@ -21,7 +20,7 @@ async function startServer() {
     server.on('error', onError);
     server.on('listening', onListening);
   } catch (error) {
-    logger.error('Unable to connect to the database:', error);
+    console.error('Unable to connect to the database:', error);
   }
 }
 
@@ -54,5 +53,29 @@ function onListening() {
   const bind = typeof addr === 'string' ? 'pipe ' + addr : 'http://localhost:' + addr.port;
   console.log('Server listening on ' + bind);
 }
+
+// Handle application shutdown gracefully
+async function shutdown() {
+  server.close(async () => {
+    try {
+      await sequelize.close();
+      console.log('Database connection closed.');
+      process.exit(0);
+    } catch (error) {
+      console.error('Error closing database connection:', error);
+      process.exit(1);
+    }
+  });
+
+  // Force close if graceful shutdown takes too long
+  setTimeout(() => {
+    console.error('Shutdown timed out, forcefully exiting process');
+    process.exit(1);
+  }, 10000);
+}
+
+// Listen for termination signals
+process.on('SIGTERM', () => shutdown());
+process.on('SIGINT', () => shutdown());
 
 startServer();
