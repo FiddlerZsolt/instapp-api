@@ -1,6 +1,6 @@
 'use strict';
 /** @type {import('sequelize-cli').Migration} */
-module.exports = {
+export default {
   async up(queryInterface, Sequelize) {
     await queryInterface.createTable('Devices', {
       id: {
@@ -10,7 +10,7 @@ module.exports = {
         type: Sequelize.INTEGER,
       },
       platform: {
-        type: Sequelize.STRING,
+        type: Sequelize.ENUM('ios', 'android'),
         allowNull: false,
       },
       deviceName: {
@@ -25,9 +25,15 @@ module.exports = {
         type: Sequelize.STRING,
         allowNull: false,
       },
+      isActive: {
+        type: Sequelize.BOOLEAN,
+        defaultValue: true,
+        defaultValue: true,
+      },
       user_id: {
         type: Sequelize.INTEGER,
-        allowNull: false,
+        allowNull: true,
+        defaultValue: null,
         references: {
           model: 'Users',
           key: 'id',
