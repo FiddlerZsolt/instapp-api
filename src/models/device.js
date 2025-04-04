@@ -36,7 +36,6 @@ export default (sequelize, DataTypes) => {
       isActive: {
         type: DataTypes.BOOLEAN,
         defaultValue: true,
-        defaultValue: true,
       },
       user_id: {
         type: DataTypes.INTEGER,

@@ -4,7 +4,7 @@ import { ApiError } from '../utils/errors.js';
  * Global error handler middleware for the Express application
  * Formats and sends appropriate error responses based on error type
  */
-export default function errorHandler(err, req, res, next) {
+export default function errorHandler(err, req, res) {
   // Log the error for debugging purposes
   console.error(err);
 

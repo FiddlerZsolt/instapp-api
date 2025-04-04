@@ -11,12 +11,7 @@ export default {
     });
   },
 
-  async down(queryInterface, Sequelize) {
-    /**
-     * Add reverting commands here.
-     *
-     * Example:
-     * await queryInterface.dropTable('users');
-     */
+  async down(queryInterface) {
+    await queryInterface.removeColumn('Devices', 'last_activity_date');
   },
 };

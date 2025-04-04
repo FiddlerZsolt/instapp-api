@@ -20,7 +20,7 @@ const errorTypeFilter = (type) => {
 };
 
 const generateLogTable = (data) => {
-  const { level, requestId, method, url, env, responseTime, statusCode, statusMessage } = data;
+  const { level, requestId, method, url, responseTime, statusCode } = data;
   const tableWidth = 100;
   const currentDateTime = new Date();
   const chars = {

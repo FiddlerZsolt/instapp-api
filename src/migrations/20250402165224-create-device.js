@@ -28,7 +28,6 @@ export default {
       isActive: {
         type: Sequelize.BOOLEAN,
         defaultValue: true,
-        defaultValue: true,
       },
       user_id: {
         type: Sequelize.INTEGER,
@@ -51,7 +50,7 @@ export default {
       },
     });
   },
-  async down(queryInterface, Sequelize) {
+  async down(queryInterface) {
     await queryInterface.dropTable('Devices');
   },
 };

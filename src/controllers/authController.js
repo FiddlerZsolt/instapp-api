@@ -2,7 +2,6 @@ import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
 import crypto from 'crypto';
 import { User, Device } from '../models/index.js';
-import { logger } from '../utils/logger.js';
 
 // JWT secret key - in a real app, this would be in an environment variable
 const JWT_SECRET = process.env.JWT_SECRET || 'your_jwt_secret_key';
