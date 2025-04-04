@@ -1,16 +1,17 @@
 # InstaApp API - Express Starter
 
-A RESTful API starter project for a social media application using Express.js, Sequelize ORM, and MySQL.
+A RESTful API starter project for a social media application using Express.js, Sequelize ORM, and PostgreSQL.
 
 ## Features
 
 * Express.js server setup with best practices
-* Sequelize ORM integration with MySQL
+* Sequelize ORM integration with PostgreSQL
 * User and Post models with relationships
 * RESTful API endpoints for users and posts
 * Like/unlike functionality
 * Error handling middleware
 * Environment variable configuration
+* Docker and Docker Compose integration
 
 ## Project Structure
 
@@ -18,6 +19,8 @@ A RESTful API starter project for a social media application using Express.js, S
 ├── app.js                 # Express app setup
 ├── package.json           # Dependencies and scripts
 ├── .env                   # Environment variables
+├── Dockerfile             # Docker configuration
+├── docker-compose.yml     # Docker Compose configuration
 ├── public/                # Static assets
 └── src/
     ├── index.js           # Server entry point
@@ -34,32 +37,51 @@ A RESTful API starter project for a social media application using Express.js, S
 ### Prerequisites
 
 * Node.js (v14+)
-* MySQL
+* PostgreSQL
+* OR Docker and Docker Compose (recommended)
 
-### Installation
+### Running with Docker (Recommended)
+
+1. Make sure Docker and Docker Compose are installed on your system
+2. Clone the repository
+3. Start the application and database containers:
+
+```
+docker-compose up -d
+```
+
+4. Run database migrations within the container:
+
+```
+docker-compose exec api npm run db:migrate:dev
+```
+
+5. The API will be available at http://localhost:3000
+
+### Manual Installation
 
 1. Clone the repository
 2. Install dependencies:
    
 
 ```
-   npm install
-   ```
+npm install
+```
 
 3. Configure your `.env` file with your database credentials
 4. Run database migrations:
    
 
 ```
-   npx sequelize-cli db:migrate
-   ```
+npm run db:migrate:dev
+```
 
 5. Start the development server:
    
 
 ```
-   npm run start:dev
-   ```
+npm run start:dev
+```
 
 ## API Endpoints
 
@@ -80,6 +102,14 @@ A RESTful API starter project for a social media application using Express.js, S
 * `DELETE /api/posts/:id` - Delete post
 * `POST /api/posts/:id/like` - Like a post
 * `DELETE /api/posts/:id/like` - Unlike a post
+
+## Docker Commands
+
+* Start containers: `docker-compose up -d`
+* Stop containers: `docker-compose down`
+* View logs: `docker-compose logs -f`
+* Access container shell: `docker-compose exec api sh`
+* Run migrations: `docker-compose exec api npm run db:migrate:dev`
 
 ## License
 
