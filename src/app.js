@@ -10,6 +10,13 @@ import errorHandler from './middleware/errorMiddleware.js';
 import createContextMiddleware from './middleware/createContextMiddleware.js';
 import { NotFoundError } from './utils/errors.js';
 
+// Import route files
+import authRoutes from './routes/auth.js';
+import userRoutes from './routes/users.js';
+import postRoutes from './routes/posts.js';
+import deviceRoutes from './routes/devices.js';
+import { addRouteGroup, routeGroup } from './utils/utils.js';
+
 // Load environment variables
 dotenv.config();
 
@@ -38,15 +45,13 @@ app.use(winstonMiddleware);
 // Serve static files
 app.use(express.static(PUBLIC_FOLDER));
 
-// Import route files
-import authRoutes from './routes/auth.js';
-import userRoutes from './routes/users.js';
-import postRoutes from './routes/posts.js';
-import deviceRoutes from './routes/devices.js';
+routeGroup(app, '/api', (router) => {
+  addRouteGroup(router, authRoutes);
+  addRouteGroup(router, deviceRoutes);
+});
 
-// Use route files
-app.use('/api/devices', deviceRoutes);
-app.use('/api', authRoutes);
+// app.use('/api/devices', deviceRoutes);
+// app.use('/api', authRoutes);
 // app.use('/api/users', userRoutes);
 // app.use('/api/posts', postRoutes);
 
