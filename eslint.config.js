@@ -7,7 +7,10 @@ export default defineConfig([
   {
     files: ['**/*.{js,mjs,cjs}'],
     languageOptions: {
-      globals: globals.node,
+      globals: {
+        ...globals.node,
+        ...globals.jest,
+      },
     },
   },
   {
