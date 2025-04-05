@@ -1,29 +1,11 @@
 import bcrypt from 'bcryptjs';
-import jwt from 'jsonwebtoken';
-import crypto from 'crypto';
 import { User, Device, sequelize } from '../models/index.js';
-import { NotFoundError } from '../utils/errors.js';
+import { NotFoundError, UnauthorizedError } from '../utils/errors.js';
 import { ApiResponse } from '../utils/response.js';
-
-// JWT secret key - in a real app, this would be in an environment variable
-const JWT_SECRET = process.env.JWT_SECRET || 'your_jwt_secret_key';
 
 // Register a new user
 export const register = async (req, res) => {
-  const { name, username, email, password, platform, deviceName } = req.context.params;
-
-  // Validate input
-  if (!username || !email || !password) {
-    return res.status(400).json({
-      message: 'Please provide username, email and password',
-    });
-  }
-
-  if (!platform || !deviceName) {
-    return res.status(400).json({
-      message: 'Please provide platform and deviceName',
-    });
-  }
+  const { name, username, email, password } = req.context.params;
 
   // Check if user already exists
   const userExists = await User.findOne({ where: { email } });
@@ -73,7 +55,8 @@ export const register = async (req, res) => {
 // Login user
 export const login = async (req, res) => {
   try {
-    const { email, password, platform, deviceName } = req.body;
+    const { email, password } = req.body;
+    const unAuthError = new UnauthorizedError();
 
     // Validate input
     if (!email || !password) {
@@ -85,94 +68,48 @@ export const login = async (req, res) => {
     // Check if user exists
     const user = await User.findOne({ where: { email } });
     if (!user) {
-      return res.status(401).json({
-        message: 'Invalid credentials',
-      });
+      return res.status(401).json(unAuthError);
     }
 
     // Check if password matches
     const isMatch = await bcrypt.compare(password, user.password);
     if (!isMatch) {
-      return res.status(401).json({
-        message: 'Invalid credentials',
-      });
+      return res.status(401).json(unAuthError);
     }
 
-    // Create token
-    const token = jwt.sign({ id: user.id, username: user.username, email: user.email }, JWT_SECRET, {
-      expiresIn: '30d',
-    });
-
-    let device;
-
-    // If platform and deviceName are provided, create or update device
-    if (platform && deviceName) {
-      // Check if device already exists for this user
-      device = await Device.findOne({
+    await Device.update(
+      { userId: user.id },
+      {
         where: {
-          userId: user.id,
-          platform,
-          deviceName,
+          id: req.context.device.id,
         },
-      });
-
-      if (device) {
-        // Update existing device with new token
-        await device.update({
-          token: token,
-        });
-      } else {
-        // Generate API token for the new device
-        const apiToken = crypto.randomBytes(32).toString('hex');
-
-        // Create new device record
-        device = await Device.create({
-          platform,
-          deviceName,
-          token: token,
-          apiToken: apiToken,
-          userId: user.id,
-        });
       }
-    }
+    );
 
-    // Return user info, token and device info if available
-    const userResponse = user.toJSON();
-    delete userResponse.password;
-
-    const response = {
-      user: userResponse,
-      token,
-    };
-
-    if (device) {
-      response.device = {
-        id: device.id,
-        platform: device.platform,
-        deviceName: device.deviceName,
-        apiToken: device.apiToken,
-      };
-    }
-
-    res.json(response);
-  } catch (err) {
-    console.error(err);
-    res.status(500).json({ message: 'Server error' });
+    res.json(ApiResponse.baseResponse(true));
+  } catch (error) {
+    console.error('Login error:', error);
+    res.status(500).json({
+      message: 'Error logging in user',
+    });
   }
 };
 
 // Get current user
 export const getCurrentUser = async (req, res) => {
   try {
-    if (!req.user) {
-      return res.status(404).json(new NotFoundError('User not found'));
+    const notFoundError = new NotFoundError('User not found');
+
+    if (!req.context?.device?.user) {
+      return res.status(404).json(notFoundError);
     }
-    const user = await User.findByPk(req.user.id, {
+
+    const user = await User.findByPk(req.context?.device?.userId, {
       attributes: { exclude: ['password'] },
     });
 
     if (!user) {
-      return res.status(404).json({ message: 'User not found' });
+      return res.status(404).json(notFoundError);
     }
 
     res.json(user);

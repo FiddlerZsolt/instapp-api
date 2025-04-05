@@ -7,6 +7,8 @@ import { validate } from '../middleware/validationMiddleware.js';
 
 const router = express.Router();
 
+router.use(authorization);
+
 router.post(
   '/register',
   validate({
@@ -18,7 +20,6 @@ router.post(
     platform: { type: 'enum', values: ['android', 'ios'] },
     deviceName: { type: 'string', empty: false },
   }),
-  authorization,
   authController.register
 );
 
@@ -30,7 +31,7 @@ router.post(
   }),
   authController.login
 );
-router.get('/me', authorization, authController.getCurrentUser);
+router.get('/me', authController.getCurrentUser);
 
 // TODO: Uncomment the following routes when implemented
 // router.get('/logout', authorization, authController.logout);

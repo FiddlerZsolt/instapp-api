@@ -52,13 +52,17 @@ describe('Device Model', () => {
       // If validation doesn't throw, the test should fail
       expect(false).toBe(true, 'Validation should have failed');
     } catch (error) {
-      expect(error.errors).toHaveLength(4); // platform, deviceName, token, apiToken
+      console.log(error);
+
+      expect(error.errors).toHaveLength(6);
 
       const errorFields = error.errors.map((err) => err.path);
       expect(errorFields).toContain('platform');
       expect(errorFields).toContain('deviceName');
       expect(errorFields).toContain('token');
       expect(errorFields).toContain('apiToken');
+      expect(errorFields).toContain('createdAt');
+      expect(errorFields).toContain('updatedAt');
     }
   });
 
@@ -74,10 +78,17 @@ describe('Device Model', () => {
     // Act & Assert
     try {
       await invalidDevice.validate();
+      // If validation doesn't throw, the test should fail
       expect(false).toBe(true, 'Validation should have failed');
     } catch (error) {
-      expect(error.errors).toHaveLength(1);
-      expect(error.errors[0].path).toBe('platform');
+      console.log(error);
+
+      expect(error.errors).toHaveLength(3); // Only platform error
+
+      const errorFields = error.errors.map((err) => err.path);
+      expect(errorFields).toContain('platform');
+      expect(errorFields).toContain('createdAt');
+      expect(errorFields).toContain('updatedAt');
     }
   });
 });

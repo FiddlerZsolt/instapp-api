@@ -3,33 +3,6 @@ import { UnauthorizedError } from '../utils/errors.js';
 
 export const authorization = async (req, res, next) => {
   try {
-    // let token;
-
-    // Check for JWT token in Authorization header
-    // if (req.headers.authorization && req.headers.authorization.startsWith('Bearer')) {
-    //   token = req.headers.authorization.split(' ')[1];
-
-    //   // Verify the token
-    //   const decoded = jwt.verify(token, JWT_SECRET, {
-    //     algorithms: ['HS256'],
-    //     issuer: 'your-api-name',
-    //     maxAge: '1d',
-    //   });
-
-    //   // Get user from database without password
-    //   const user = await User.findByPk(decoded.id, {
-    //     attributes: { exclude: ['password'] },
-    //   });
-
-    //   if (!user) {
-    //     throw new UnauthorizedError();
-    //   }
-
-    //   // Add user to request object
-    //   req.user = user;
-    //   return next();
-    // }
-
     // Check for API token in X-API-Token header
     if (req.headers['x-api-token']) {
       const apiToken = req.headers['x-api-token'];
@@ -51,8 +24,11 @@ export const authorization = async (req, res, next) => {
       }
 
       // Add user and device to request object
-      // req.context.meta.user = device?.user || null;
-      req.context.device = device;
+      req.context.device = device.toJSON();
+
+      if (process.env.NODE_ENV === 'development') {
+        console.log('Device:', req.context.device);
+      }
       return next();
     }
 
