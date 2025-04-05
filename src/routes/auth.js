@@ -4,6 +4,7 @@ import express from 'express';
 import * as authController from '../controllers/authController.js';
 import { authorization } from '../middleware/authMiddleware.js';
 import { validate } from '../middleware/validationMiddleware.js';
+import { cache, cacheDuration } from '../utils/cacher.js';
 
 const router = express.Router();
 
@@ -31,7 +32,15 @@ router.post(
   }),
   authController.login
 );
-router.get('/me', authController.getCurrentUser);
+router.get(
+  '/me',
+  cache({
+    key: 'auth.me',
+    duration: cacheDuration({ hours: 1 }),
+    keys: ['#user.id', 'type'],
+  }),
+  authController.getCurrentUser
+);
 
 // TODO: Uncomment the following routes when implemented
 // router.get('/logout', authorization, authController.logout);

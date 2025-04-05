@@ -8,6 +8,11 @@ function initRoutes(app) {
   apiRouter.use('/auth', authRoutes);
   apiRouter.use('/devices', deviceRoutes);
 
+  // healthcheck
+  apiRouter.get('/healthcheck', (req, res) => {
+    res.status(200).json({ status: 'ok' });
+  });
+
   app.use('/api', apiRouter);
 }
 
