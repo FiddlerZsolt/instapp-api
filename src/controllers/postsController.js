@@ -13,7 +13,7 @@ export const getAllPosts = async (req, res) => {
         {
           model: Like,
           as: 'likes',
-          attributes: ['id', 'user_id'],
+          attributes: ['id', 'userId'],
         },
       ],
       order: [['created_at', 'DESC']],
@@ -38,7 +38,7 @@ export const getPostById = async (req, res) => {
         {
           model: Like,
           as: 'likes',
-          attributes: ['id', 'user_id'],
+          attributes: ['id', 'userId'],
         },
       ],
     });

@@ -52,13 +52,6 @@ const generateLogTable = (data) => {
       color = chalk.white;
   }
 
-  // if (env === undefined) {
-  //   return;
-  // }
-
-  // Format environment text with truncation if needed
-  // const envText = env.length > 17 ? `${env.slice(0, 17)}...` : env;
-
   // Create header components
   const timeInfo = `${currentDateTime.toISOString()}`;
   // const envInfo = `${envText}`;

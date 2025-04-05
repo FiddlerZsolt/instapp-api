@@ -9,7 +9,7 @@ export default {
         primaryKey: true,
         type: Sequelize.INTEGER,
       },
-      user_id: {
+      userId: {
         type: Sequelize.INTEGER,
         allowNull: false,
         references: {
@@ -19,7 +19,7 @@ export default {
         onUpdate: 'CASCADE',
         onDelete: 'CASCADE',
       },
-      post_id: {
+      postId: {
         type: Sequelize.INTEGER,
         allowNull: false,
         references: {
@@ -29,11 +29,11 @@ export default {
         onUpdate: 'CASCADE',
         onDelete: 'CASCADE',
       },
-      created_at: {
+      createdAt: {
         allowNull: false,
         type: Sequelize.DATE,
       },
-      updated_at: {
+      updatedAt: {
         allowNull: false,
         type: Sequelize.DATE,
       },

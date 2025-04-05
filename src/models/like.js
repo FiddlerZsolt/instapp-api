@@ -10,26 +10,34 @@ export default (sequelize, DataTypes) => {
     static associate(models) {
       // Like belongs to User
       Like.belongsTo(models.User, {
-        foreignKey: 'user_id',
+        foreignKey: 'userId',
         as: 'user',
       });
 
       // Like belongs to Post
       Like.belongsTo(models.Post, {
-        foreignKey: 'post_id',
+        foreignKey: 'postId',
         as: 'post',
       });
     }
   }
   Like.init(
     {
-      user_id: {
+      userId: {
         type: DataTypes.INTEGER,
         allowNull: false,
       },
-      post_id: {
+      postId: {
         type: DataTypes.INTEGER,
         allowNull: false,
+      },
+      createdAt: {
+        allowNull: false,
+        type: DataTypes.DATE,
+      },
+      updatedAt: {
+        allowNull: false,
+        type: DataTypes.DATE,
       },
     },
     {

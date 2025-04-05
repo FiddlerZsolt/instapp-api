@@ -62,6 +62,8 @@ const createContextMiddleware = (req, res, next) => {
     },
     // User info (will be populated by auth middleware if available)
     user: req.user || null,
+    // Device info (if applicable)
+    device: req.device || null,
     // Session info if using sessions
     session: req.session || null,
     // Add any other contextual information you want available throughout the request

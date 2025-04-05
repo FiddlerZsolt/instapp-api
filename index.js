@@ -55,8 +55,9 @@ function onListening() {
 }
 
 // Handle application shutdown gracefully
-async function shutdown() {
+async function stopServer() {
   server.close(async () => {
+    console.log('\nShutting down server...');
     try {
       await sequelize.close();
       console.log('Database connection closed.');
@@ -66,16 +67,10 @@ async function shutdown() {
       process.exit(1);
     }
   });
-
-  // Force close if graceful shutdown takes too long
-  setTimeout(() => {
-    console.error('Shutdown timed out, forcefully exiting process');
-    process.exit(1);
-  }, 10000);
 }
 
 // Listen for termination signals
-process.on('SIGTERM', () => shutdown());
-process.on('SIGINT', () => shutdown());
+process.on('SIGTERM', stopServer);
+process.on('SIGINT', stopServer);
 
 startServer();

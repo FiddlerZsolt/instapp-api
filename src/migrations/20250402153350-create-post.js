@@ -14,17 +14,17 @@ export default {
         allowNull: false,
         length: 255,
       },
-      image_path: {
+      imagePath: {
         type: Sequelize.STRING,
         allowNull: false,
         length: 255,
       },
-      image_url: {
+      imageUrl: {
         type: Sequelize.STRING,
         allowNull: false,
         length: 255,
       },
-      user_id: {
+      userId: {
         type: Sequelize.INTEGER,
         allowNull: false,
         references: {
@@ -34,11 +34,11 @@ export default {
         onUpdate: 'CASCADE',
         onDelete: 'CASCADE',
       },
-      created_at: {
+      createdAt: {
         allowNull: false,
         type: Sequelize.DATE,
       },
-      updated_at: {
+      updatedAt: {
         allowNull: false,
         type: Sequelize.DATE,
       },

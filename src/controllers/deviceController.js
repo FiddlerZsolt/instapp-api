@@ -4,19 +4,24 @@ import { ApiResponse } from '../utils/response.js';
 
 // Create a new device
 export const addDevice = async (req, res) => {
-  const { platform, deviceName, token } = req.context.params;
+  try {
+    const { platform, deviceName, token } = req.context.params;
 
-  // Create a new device instance
-  const newDevice = await Device.create({
-    platform,
-    deviceName,
-    token,
-    apiToken: crypto.randomBytes(16).toString('hex'), // Generate a random API token
-  });
+    // Create a new device instance
+    const newDevice = await Device.create({
+      platform,
+      deviceName,
+      token,
+      apiToken: crypto.randomBytes(16).toString('hex'), // Generate a random API token
+    });
 
-  return res.status(201).json(
-    new ApiResponse({
-      token: newDevice.apiToken,
-    })
-  );
+    return res.status(201).json(
+      new ApiResponse({
+        token: newDevice.apiToken,
+      })
+    );
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: 'Server error' });
+  }
 };

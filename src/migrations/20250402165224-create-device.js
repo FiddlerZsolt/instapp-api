@@ -29,7 +29,13 @@ export default {
         type: Sequelize.BOOLEAN,
         defaultValue: true,
       },
-      user_id: {
+      lastActivityDate: {
+        type: Sequelize.DATE,
+        allowNull: true,
+        defaultValue: null,
+        comment: 'Date of last activity for the device',
+      },
+      userId: {
         type: Sequelize.INTEGER,
         allowNull: true,
         defaultValue: null,
@@ -40,11 +46,11 @@ export default {
         onUpdate: 'CASCADE',
         onDelete: 'CASCADE',
       },
-      created_at: {
+      createdAt: {
         allowNull: false,
         type: Sequelize.DATE,
       },
-      updated_at: {
+      updatedAt: {
         allowNull: false,
         type: Sequelize.DATE,
       },

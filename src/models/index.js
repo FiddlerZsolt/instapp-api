@@ -22,10 +22,10 @@ const sequelize = new Sequelize(process.env.DB_DATABASE, process.env.DB_USERNAME
     // The `timestamps` field specify whether or not the `createdAt` and `updatedAt` fields will be created.
     // This was true by default, but now is false by default
     timestamps: true,
-    updatedAt: 'updated_at',
-    createdAt: 'created_at',
+    updatedAt: 'updatedAt',
+    createdAt: 'createdAt',
   },
-  logging: true,
+  logging: false,
   benchmark: false,
 });
 
@@ -57,4 +57,4 @@ db.Sequelize = Sequelize;
 
 export default db;
 export { sequelize, Sequelize };
-export const { User, Post, Like, Comment, Device } = db;
+export const { User, Device } = db;

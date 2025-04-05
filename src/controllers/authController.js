@@ -1,7 +1,9 @@
 import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
 import crypto from 'crypto';
-import { User, Device } from '../models/index.js';
+import { User, Device, sequelize } from '../models/index.js';
+import { NotFoundError } from '../utils/errors.js';
+import { ApiResponse } from '../utils/response.js';
 
 // JWT secret key - in a real app, this would be in an environment variable
 const JWT_SECRET = process.env.JWT_SECRET || 'your_jwt_secret_key';
@@ -35,46 +37,37 @@ export const register = async (req, res) => {
   const salt = await bcrypt.genSalt(10);
   const hashedPassword = await bcrypt.hash(password, salt);
 
-  // Create user
-  const user = await User.create({
-    username,
-    email,
-    password: hashedPassword,
-    name: name || username, // Using username as name if not provided
-    profile_image: '', // Default empty profile image
-  });
+  try {
+    // Use transaction to create user and update device
+    await sequelize.transaction(async () => {
+      // both of these queries will run in the transaction
+      const user = await User.create({
+        username,
+        email,
+        password: hashedPassword,
+        name: name || username, // Using username as name if not provided
+        profileImage: '', // Default empty profile image
+      });
 
-  // Create JWT token for authentication
-  const token = jwt.sign({ id: user.id, username: user.username, email: user.email }, JWT_SECRET, {
-    expiresIn: '30d',
-  });
+      await Device.update(
+        { userId: user.id },
+        {
+          where: {
+            id: req.context.device.id,
+          },
+        }
+      );
 
-  // Generate API token for the device
-  const apiToken = crypto.randomBytes(32).toString('hex');
+      return user;
+    });
 
-  // Create device record
-  const device = await Device.create({
-    platform,
-    deviceName,
-    token: token,
-    apiToken: apiToken,
-    user_id: user.id,
-  });
-
-  // Return user info, token and device info
-  const userResponse = user.toJSON();
-  delete userResponse.password;
-
-  res.status(201).json({
-    user: userResponse,
-    token,
-    device: {
-      id: device.id,
-      platform: device.platform,
-      deviceName: device.deviceName,
-      apiToken: device.apiToken,
-    },
-  });
+    res.status(201).json(ApiResponse.baseResponse(true));
+  } catch (error) {
+    console.error('Registration error:', error);
+    res.status(500).json({
+      message: 'Error registering user',
+    });
+  }
 };
 
 // Login user
@@ -117,7 +110,7 @@ export const login = async (req, res) => {
       // Check if device already exists for this user
       device = await Device.findOne({
         where: {
-          user_id: user.id,
+          userId: user.id,
           platform,
           deviceName,
         },
@@ -138,7 +131,7 @@ export const login = async (req, res) => {
           deviceName,
           token: token,
           apiToken: apiToken,
-          user_id: user.id,
+          userId: user.id,
         });
       }
     }
@@ -171,6 +164,9 @@ export const login = async (req, res) => {
 // Get current user
 export const getCurrentUser = async (req, res) => {
   try {
+    if (!req.user) {
+      return res.status(404).json(new NotFoundError('User not found'));
+    }
     const user = await User.findByPk(req.user.id, {
       attributes: { exclude: ['password'] },
     });

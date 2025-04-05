@@ -30,7 +30,7 @@ export default {
         allowNull: false,
         length: 255,
       },
-      profile_image: {
+      profileImage: {
         type: Sequelize.STRING,
         allowNull: false,
         length: 255,
@@ -39,11 +39,11 @@ export default {
         type: Sequelize.STRING,
         length: 255,
       },
-      created_at: {
+      createdAt: {
         allowNull: false,
         type: Sequelize.DATE,
       },
-      updated_at: {
+      updatedAt: {
         allowNull: false,
         type: Sequelize.DATE,
       },

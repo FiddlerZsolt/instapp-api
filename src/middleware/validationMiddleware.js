@@ -24,11 +24,12 @@ export const validate = (schema) => {
 
       // Validation failed, throw a ValidationError
       const error = new ValidationError('Validation failed', 'VALIDATION_ERROR', validationResult);
-      next(error);
+
+      res.status(error.statusCode).json(error);
     } catch (err) {
-      // Handle any errors in the validation process itself
-      const error = new ValidationError(`Validation error: ${err.message}`);
-      next(error);
+      // Handle any errors that occur during validation
+      const error = new ValidationError('Validation failed', 'VALIDATION_ERROR', err);
+      res.status(400).json(error);
     }
   };
 };

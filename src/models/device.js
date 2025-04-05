@@ -10,7 +10,7 @@ export default (sequelize, DataTypes) => {
     static associate(models) {
       // Device belongs to User
       Device.belongsTo(models.User, {
-        foreignKey: 'user_id',
+        foreignKey: 'userId',
         as: 'user',
       });
     }
@@ -19,6 +19,12 @@ export default (sequelize, DataTypes) => {
     {
       platform: {
         type: DataTypes.ENUM('ios', 'android'),
+        validate: {
+          isIn: {
+            args: [['ios', 'android']],
+            msg: 'Platform must be either ios or android',
+          },
+        },
         allowNull: false,
       },
       deviceName: {
@@ -37,7 +43,12 @@ export default (sequelize, DataTypes) => {
         type: DataTypes.BOOLEAN,
         defaultValue: true,
       },
-      user_id: {
+      lastActivityDate: {
+        type: DataTypes.DATE,
+        allowNull: true,
+        defaultValue: null,
+      },
+      userId: {
         type: DataTypes.INTEGER,
         allowNull: true,
         references: {
@@ -45,6 +56,14 @@ export default (sequelize, DataTypes) => {
           key: 'id',
         },
         defaultValue: null,
+      },
+      createdAt: {
+        allowNull: false,
+        type: DataTypes.DATE,
+      },
+      updatedAt: {
+        allowNull: false,
+        type: DataTypes.DATE,
       },
     },
     {

@@ -10,28 +10,28 @@ export default (sequelize, DataTypes) => {
     static associate(models) {
       // User has many posts
       User.hasMany(models.Post, {
-        foreignKey: 'user_id',
+        foreignKey: 'userId',
         as: 'posts',
         onDelete: 'CASCADE',
       });
 
       // User has many likes
       User.hasMany(models.Like, {
-        foreignKey: 'user_id',
+        foreignKey: 'userId',
         as: 'likes',
         onDelete: 'CASCADE',
       });
 
       // User has many comments
       User.hasMany(models.Comment, {
-        foreignKey: 'user_id',
+        foreignKey: 'userId',
         as: 'comments',
         onDelete: 'CASCADE',
       });
 
       // User has many devices
       User.hasMany(models.Device, {
-        foreignKey: 'user_id',
+        foreignKey: 'userId',
         as: 'devices',
         onDelete: 'CASCADE',
       });
@@ -63,7 +63,7 @@ export default (sequelize, DataTypes) => {
         allowNull: false,
         length: 255,
       },
-      profile_image: {
+      profileImage: {
         type: DataTypes.STRING,
         allowNull: false,
         length: 255,
@@ -71,6 +71,14 @@ export default (sequelize, DataTypes) => {
       bio: {
         type: DataTypes.STRING,
         length: 255,
+      },
+      createdAt: {
+        allowNull: false,
+        type: DataTypes.DATE,
+      },
+      updatedAt: {
+        allowNull: false,
+        type: DataTypes.DATE,
       },
     },
     {

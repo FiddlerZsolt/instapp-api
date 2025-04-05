@@ -10,13 +10,13 @@ export default (sequelize, DataTypes) => {
     static associate(models) {
       // Comment belongs to User
       Comment.belongsTo(models.User, {
-        foreignKey: 'user_id',
+        foreignKey: 'userId',
         as: 'user',
       });
 
       // Comment belongs to Post
       Comment.belongsTo(models.Post, {
-        foreignKey: 'post_id',
+        foreignKey: 'postId',
         as: 'post',
       });
     }
@@ -27,13 +27,21 @@ export default (sequelize, DataTypes) => {
         type: DataTypes.STRING,
         allowNull: false,
       },
-      user_id: {
+      userId: {
         type: DataTypes.INTEGER,
         allowNull: false,
       },
-      post_id: {
+      postId: {
         type: DataTypes.INTEGER,
         allowNull: false,
+      },
+      createdAt: {
+        allowNull: false,
+        type: DataTypes.DATE,
+      },
+      updatedAt: {
+        allowNull: false,
+        type: DataTypes.DATE,
       },
     },
     {

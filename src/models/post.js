@@ -10,20 +10,20 @@ export default (sequelize, DataTypes) => {
     static associate(models) {
       // Post belongs to User
       Post.belongsTo(models.User, {
-        foreignKey: 'user_id',
+        foreignKey: 'userId',
         as: 'user',
       });
 
       // Post has many likes
       Post.hasMany(models.Like, {
-        foreignKey: 'post_id',
+        foreignKey: 'postId',
         as: 'likes',
         onDelete: 'CASCADE',
       });
 
       // Post has many comments
       Post.hasMany(models.Comment, {
-        foreignKey: 'post_id',
+        foreignKey: 'postId',
         as: 'comments',
         onDelete: 'CASCADE',
       });
@@ -36,19 +36,27 @@ export default (sequelize, DataTypes) => {
         allowNull: false,
         length: 255,
       },
-      image_path: {
+      imagePath: {
         type: DataTypes.STRING,
         allowNull: false,
         length: 255,
       },
-      image_url: {
+      imageUrl: {
         type: DataTypes.STRING,
         allowNull: false,
         length: 255,
       },
-      user_id: {
+      userId: {
         type: DataTypes.INTEGER,
         allowNull: false,
+      },
+      createdAt: {
+        allowNull: false,
+        type: DataTypes.DATE,
+      },
+      updatedAt: {
+        allowNull: false,
+        type: DataTypes.DATE,
       },
     },
     {
