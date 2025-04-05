@@ -1,5 +1,6 @@
 'use strict';
 
+import { logger } from '../utils/logger.js';
 import { v4 as uuidv4 } from 'uuid';
 
 /**
@@ -22,54 +23,62 @@ import { v4 as uuidv4 } from 'uuid';
  * @param {Function} next - Express next middleware function
  * @returns {void}
  */
-const createContextMiddleware = (req, res, next) => {
-  // Initialize params object
-  req.params = req.params || {};
+const createContextMiddleware = (customParams) => {
+  return async (req, res, next) => {
+    try {
+      // Initialize params object
+      req.params = req.params || {};
 
-  // Generate a unique ID for the request
-  req.id = uuidv4();
+      // Generate a unique ID for the request
+      req.id = uuidv4();
 
-  // Combine all parameters into one object
-  req.allParams = {
-    // Route params
-    ...req.params,
-    // Query string params
-    ...req.query,
-    // Form/JSON body
-    ...req.body,
+      // Combine all parameters into one object
+      req.allParams = {
+        // Route params
+        ...req.params,
+        // Query string params
+        ...req.query,
+        // Form/JSON body
+        ...req.body,
+      };
+
+      // Create a context object that includes allParams and other useful request info
+      req.context = {
+        // Unique request ID
+        id: req.id,
+        // Include all parameters
+        params: {
+          // Route params
+          ...req.params,
+          // Query string params
+          ...req.query,
+          // Form/JSON body
+          ...req.body,
+        },
+        // Request metadata
+        request: {
+          method: req.method,
+          path: req.path,
+          url: req.url,
+          originalUrl: req.originalUrl,
+          timestamp: new Date().toISOString(),
+        },
+        meta: {
+          // User info (will be populated by auth middleware if available)
+          user: req.user || null,
+          // Device info (if applicable)
+          device: req.device || null,
+        },
+        // Add any other contextual information you want available throughout the request
+        ...customParams,
+      };
+
+      next();
+    } catch (error) {
+      logger.error('Error in context middleware:', error);
+      next(); // Continue to handler on error}
+    }
   };
-
-  // Create a context object that includes allParams and other useful request info
-  req.context = {
-    // Unique request ID
-    id: req.id,
-    // Include all parameters
-    params: {
-      // Route params
-      ...req.params,
-      // Query string params
-      ...req.query,
-      // Form/JSON body
-      ...req.body,
-    },
-    // Request metadata
-    request: {
-      method: req.method,
-      path: req.path,
-      url: req.url,
-      originalUrl: req.originalUrl,
-      timestamp: new Date().toISOString(),
-    },
-    // User info (will be populated by auth middleware if available)
-    user: req.user || null,
-    // Device info (if applicable)
-    device: req.device || null,
-    // Session info if using sessions
-    session: req.session || null,
-    // Add any other contextual information you want available throughout the request
-  };
-
-  next();
 };
 
 export default createContextMiddleware;

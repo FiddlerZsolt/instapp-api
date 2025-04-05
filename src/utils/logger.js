@@ -3,6 +3,7 @@ import path from 'path';
 import { fileURLToPath } from 'url';
 import { env } from 'process';
 import chalk from 'chalk';
+import { DateTime } from 'luxon';
 
 const { combine, timestamp, printf, json } = winston.format;
 
@@ -20,9 +21,9 @@ const errorTypeFilter = (type) => {
 };
 
 const generateLogTable = (data) => {
-  const { level, requestId, method, url, responseTime, statusCode } = data;
+  const { level, requestId, method, url, responseTime, statusCode, isCache } = data;
   const tableWidth = 100;
-  const currentDateTime = new Date();
+  const currentDateTime = DateTime.now().toFormat('yyyy-MM-dd TT ZZ');
   const chars = {
     topLeft: '┌',
     topRight: '┐',
@@ -53,7 +54,7 @@ const generateLogTable = (data) => {
   }
 
   // Create header components
-  const timeInfo = `${currentDateTime.toISOString()}`;
+  const timeInfo = `${currentDateTime}`;
   // const envInfo = `${envText}`;
   // const environtmentInfoPadding = tableWidth - timeInfo.length - envInfo.length - 3;
   const environtmentInfoPadding = tableWidth - timeInfo.length - 2;
@@ -63,7 +64,7 @@ const generateLogTable = (data) => {
   const headerPadding = tableWidth - headerInfo.length - responseInfo.length - 2;
 
   // Create main content
-  const requestInfo = `<= ${statusCode} ${method} ${url}`;
+  const requestInfo = `<= ${statusCode} ${method} ${url}${isCache ? ' *' : ''}`;
   const contentPadding = tableWidth - requestInfo.length - 2;
 
   return color(
@@ -82,7 +83,7 @@ const generateLogTable = (data) => {
 };
 
 // Configure Winston logger
-const logger = winston.createLogger({
+const requestLogger = winston.createLogger({
   level: process.env.LOG_LEVEL || 'info',
   format: combine(timestamp(), json()),
   transports: [
@@ -101,6 +102,39 @@ const logger = winston.createLogger({
   ],
 });
 
+const logger = winston.createLogger({
+  level: process.env.LOG_LEVEL || 'debug',
+  format: combine(timestamp(), json()),
+  transports: [
+    new winston.transports.Console({
+      format: combine(
+        printf((data) => {
+          const { level, message } = data;
+          let color = chalk.white;
+          switch (level) {
+            case 'error':
+              color = chalk.red;
+              break;
+            case 'warn':
+              color = chalk.yellow;
+              break;
+            case 'info':
+              color = chalk.blue;
+              break;
+            case 'debug':
+              color = chalk.green;
+              break;
+            default:
+              color = chalk.white;
+          }
+          // return color(`${DateTime.now()} [${level}] ${message}`);
+          return color(`${DateTime.now().toFormat('yyyy-MM-dd TT ZZ')} [${level}] ${message}`);
+        })
+      ),
+    }),
+  ],
+});
+
 const winstonMiddleware = (req, res, next) => {
   const start = Date.now(); // Record the start time
 
@@ -109,6 +143,7 @@ const winstonMiddleware = (req, res, next) => {
     // Calculate duration
     const duration = Date.now() - start;
     const loggerType = res.statusCode >= 500 ? 'error' : res.statusCode >= 400 ? 'warn' : 'info';
+
     const logData = {
       requestId: req.id,
       method: req.method,
@@ -120,12 +155,13 @@ const winstonMiddleware = (req, res, next) => {
       statusCode: res.statusCode,
       statusMessage: res.statusMessage,
       body: req.body,
+      isCache: req.context.isCache,
     };
 
     // Log the request using winston
-    logger[loggerType](`Request ID: ${req.id} - ${req.method} ${req.url} - ${duration}ms`, logData);
+    requestLogger[loggerType](`Request ID: ${req.id} - ${req.method} ${req.url} - ${duration}ms`, logData);
   });
   next();
 };
 
-export { logger, winstonMiddleware };
+export { requestLogger, winstonMiddleware, logger };

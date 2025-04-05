@@ -1,6 +1,7 @@
 import crypto from 'crypto';
 import { Device } from '../models/index.js';
 import { ApiResponse } from '../utils/response.js';
+import { logger } from '../utils/logger.js';
 
 // Create a new device
 export const addDevice = async (req, res) => {
@@ -21,7 +22,7 @@ export const addDevice = async (req, res) => {
       })
     );
   } catch (error) {
-    console.error(error);
+    logger.error(error);
     res.status(500).json({ message: 'Server error' });
   }
 };

@@ -1,4 +1,5 @@
 import { Post, User, Like } from '../models/index.js';
+import { logger } from '../utils/logger.js';
 
 // Get all posts
 export const getAllPosts = async (req, res) => {
@@ -20,7 +21,7 @@ export const getAllPosts = async (req, res) => {
     });
     res.json(posts);
   } catch (err) {
-    console.error(err);
+    logger.error(err);
     res.status(500).json({ message: 'Server error' });
   }
 };
@@ -49,7 +50,7 @@ export const getPostById = async (req, res) => {
 
     res.json(post);
   } catch (err) {
-    console.error(err);
+    logger.error(err);
     res.status(500).json({ message: 'Server error' });
   }
 };
@@ -66,7 +67,7 @@ export const createPost = async (req, res) => {
     const post = await Post.create(postData);
     res.status(201).json(post);
   } catch (err) {
-    console.error(err);
+    logger.error(err);
     res.status(400).json({ message: err.message });
   }
 };
@@ -88,7 +89,7 @@ export const updatePost = async (req, res) => {
     await post.update(req.body);
     res.json(post);
   } catch (err) {
-    console.error(err);
+    logger.error(err);
     res.status(400).json({ message: err.message });
   }
 };
@@ -110,7 +111,7 @@ export const deletePost = async (req, res) => {
     await post.destroy();
     res.json({ message: 'Post deleted successfully' });
   } catch (err) {
-    console.error(err);
+    logger.error(err);
     res.status(500).json({ message: 'Server error' });
   }
 };
@@ -147,7 +148,7 @@ export const likePost = async (req, res) => {
 
     res.status(201).json(like);
   } catch (err) {
-    console.error(err);
+    logger.error(err);
     res.status(500).json({ message: 'Server error' });
   }
 };
@@ -179,7 +180,7 @@ export const unlikePost = async (req, res) => {
     await like.destroy();
     res.json({ message: 'Post unliked successfully' });
   } catch (err) {
-    console.error(err);
+    logger.error(err);
     res.status(500).json({ message: 'Server error' });
   }
 };

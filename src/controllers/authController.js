@@ -2,6 +2,7 @@ import bcrypt from 'bcryptjs';
 import { User, Device, sequelize } from '../models/index.js';
 import { NotFoundError, UnauthorizedError } from '../utils/errors.js';
 import { ApiResponse } from '../utils/response.js';
+import { logger } from '../utils/logger.js';
 
 // Register a new user
 export const register = async (req, res) => {
@@ -35,7 +36,7 @@ export const register = async (req, res) => {
         { userId: user.id },
         {
           where: {
-            id: req.context.device.id,
+            id: req.context.meta.device.id,
           },
         }
       );
@@ -45,7 +46,7 @@ export const register = async (req, res) => {
 
     res.status(201).json(ApiResponse.baseResponse(true));
   } catch (error) {
-    console.error('Registration error:', error);
+    logger.error('Registration error:', error);
     res.status(500).json({
       message: 'Error registering user',
     });
@@ -81,14 +82,14 @@ export const login = async (req, res) => {
       { userId: user.id },
       {
         where: {
-          id: req.context.device.id,
+          id: req.context.meta.device.id,
         },
       }
     );
 
     res.json(ApiResponse.baseResponse(true));
   } catch (error) {
-    console.error('Login error:', error);
+    logger.error('Login error:', error);
     res.status(500).json({
       message: 'Error logging in user',
     });
@@ -100,11 +101,11 @@ export const getCurrentUser = async (req, res) => {
   try {
     const notFoundError = new NotFoundError('User not found');
 
-    if (!req.context?.device?.user) {
+    if (!req.context?.meta?.user) {
       return res.status(404).json(notFoundError);
     }
 
-    const user = await User.findByPk(req.context?.device?.userId, {
+    const user = await User.findByPk(req.context.meta.user.id, {
       attributes: { exclude: ['password'] },
     });
 
@@ -114,7 +115,7 @@ export const getCurrentUser = async (req, res) => {
 
     res.json(user);
   } catch (err) {
-    console.error(err);
+    logger.error(err);
     res.status(500).json({ message: 'Server error' });
   }
 };

@@ -1,3 +1,4 @@
+import { logger } from '../utils/logger.js';
 import { ApiError } from '../utils/errors.js';
 
 /**
@@ -6,7 +7,7 @@ import { ApiError } from '../utils/errors.js';
  */
 export default function errorHandler(err, req, res) {
   // Log the error for debugging purposes
-  console.error(err);
+  logger.error(err);
 
   // Default error status and message
   let statusCode = 500;

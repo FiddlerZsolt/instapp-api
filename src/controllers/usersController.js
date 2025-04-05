@@ -1,4 +1,5 @@
 import { User } from '../models/index.js';
+import { logger } from '../utils/logger.js';
 
 // Get all users
 export const getAllUsers = async (req, res) => {
@@ -8,7 +9,7 @@ export const getAllUsers = async (req, res) => {
     });
     res.json(users);
   } catch (err) {
-    console.error(err);
+    logger.error(err);
     res.status(500).json({ message: 'Server error' });
   }
 };
@@ -26,7 +27,7 @@ export const getUserById = async (req, res) => {
 
     res.json(user);
   } catch (err) {
-    console.error(err);
+    logger.error(err);
     res.status(500).json({ message: 'Server error' });
   }
 };
@@ -42,7 +43,7 @@ export const createUser = async (req, res) => {
 
     res.status(201).json(userResponse);
   } catch (err) {
-    console.error(err);
+    logger.error(err);
     res.status(400).json({ message: err.message });
   }
 };
@@ -64,7 +65,7 @@ export const updateUser = async (req, res) => {
 
     res.json(userResponse);
   } catch (err) {
-    console.error(err);
+    logger.error(err);
     res.status(400).json({ message: err.message });
   }
 };
@@ -81,7 +82,7 @@ export const deleteUser = async (req, res) => {
     await user.destroy();
     res.json({ message: 'User deleted successfully' });
   } catch (err) {
-    console.error(err);
+    logger.error(err);
     res.status(500).json({ message: 'Server error' });
   }
 };

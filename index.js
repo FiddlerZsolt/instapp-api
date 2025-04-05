@@ -1,6 +1,7 @@
 import app from './src/app.js';
 import http from 'http';
 import { sequelize } from './src/models/index.js';
+import { logger } from './src/utils/logger.js';
 
 // Get port from environment and store in Express
 const port = process.env.PORT || 3000;
@@ -14,13 +15,13 @@ async function startServer() {
   try {
     // Sync database (in production you might want to remove the { force: true } option)
     await sequelize.sync({ force: false });
-    console.info('Database synchronized successfully.');
+    logger.info('Database synchronized successfully.');
 
     server.listen(port);
     server.on('error', onError);
     server.on('listening', onListening);
   } catch (error) {
-    console.error('Unable to connect to the database:', error);
+    logger.error('Unable to connect to the database:', error);
   }
 }
 
@@ -35,11 +36,11 @@ function onError(error) {
   // Handle specific listen errors with friendly messages
   switch (error.code) {
     case 'EACCES':
-      console.error(bind + ' requires elevated privileges');
+      logger.error(bind + ' requires elevated privileges');
       process.exit(1);
       break;
     case 'EADDRINUSE':
-      console.error(bind + ' is already in use');
+      logger.error(bind + ' is already in use');
       process.exit(1);
       break;
     default:
@@ -51,19 +52,19 @@ function onError(error) {
 function onListening() {
   const addr = server.address();
   const bind = typeof addr === 'string' ? 'pipe ' + addr : 'http://localhost:' + addr.port;
-  console.log('Server listening on ' + bind);
+  logger.info('Server listening on ' + bind);
 }
 
 // Handle application shutdown gracefully
 async function stopServer() {
   server.close(async () => {
-    console.log('\nShutting down server...');
+    logger.info('Shutting down server...');
     try {
       await sequelize.close();
-      console.log('Database connection closed.');
+      logger.info('Database connection closed.');
       process.exit(0);
     } catch (error) {
-      console.error('Error closing database connection:', error);
+      logger.error('Error closing database connection:', error);
       process.exit(1);
     }
   });
