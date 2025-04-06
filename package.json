@@ -4,7 +4,7 @@
   "type": "module",
   "main": "index.js",
   "scripts": {
-    "start": "node --env-file=.env index.js",
+    "start": "node index.js",
     "start:dev": "nodemon --env-file=.env index.js",
     "db:migrate:dev": "npx sequelize db:migrate --env development --config ./src/config/development/config.json",
     "db:migrate:dev:undo:all": "npx sequelize db:migrate:undo:all --env development --config ./src/config/development/config.json",
@@ -38,6 +38,8 @@
     "nodemon": "^3.1.9",
     "pg": "^8.14.1",
     "sequelize": "^6.37.7",
+    "sql-formatter": "^15.5.2",
+    "sql-highlight": "^6.0.0",
     "sqlite3": "^5.1.7",
     "winston": "^3.17.0",
     "zod": "^3.24.2"

@@ -14,11 +14,5 @@ COPY . .
 # Create directories for logs and uploads if they don't exist
 RUN mkdir -p storage/logs storage/media storage/upload
 
-# Expose the port the app runs on
-EXPOSE 3000
-
-# Copy env file for Docker
-COPY .env.docker .env
-
 # Command to run the application
 CMD ["npm", "start"]

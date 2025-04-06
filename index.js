@@ -2,6 +2,7 @@ import app from './src/app.js';
 import http from 'http';
 import { sequelize } from './src/models/index.js';
 import { logger } from './src/utils/logger.js';
+import chalk from 'chalk';
 
 // Get port from environment and store in Express
 const port = process.env.PORT || 3000;
@@ -15,7 +16,7 @@ async function startServer() {
   try {
     // Sync database (in production you might want to remove the { force: true } option)
     await sequelize.sync({ force: false });
-    logger.info('Database synchronized successfully.');
+    logger.info(`${chalk.blue('Database')} synchronized successfully`);
 
     server.listen(port);
     server.on('error', onError);
@@ -31,7 +32,7 @@ function onError(error) {
     throw error;
   }
 
-  const bind = typeof port === 'string' ? 'Pipe ' + port : 'Port ' + port;
+  const bind = typeof port === 'string' ? 'Port ' + port : 'Port ' + port;
 
   // Handle specific listen errors with friendly messages
   switch (error.code) {
@@ -52,7 +53,7 @@ function onError(error) {
 function onListening() {
   const addr = server.address();
   const bind = typeof addr === 'string' ? 'pipe ' + addr : 'http://localhost:' + addr.port;
-  logger.info('Server listening on ' + bind);
+  logger.info(`${chalk.yellow('Server')} listening on ${bind}`);
 }
 
 // Handle application shutdown gracefully

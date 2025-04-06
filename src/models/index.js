@@ -1,11 +1,12 @@
-import dotenv from 'dotenv';
 import path from 'path';
 import { fileURLToPath } from 'url';
 import fs from 'fs';
 import Sequelize from 'sequelize';
-
-// Load environment variables
-dotenv.config();
+import chalk from 'chalk';
+// import { format } from 'sql-formatter';
+import { highlight } from 'sql-highlight';
+import { logger } from '../utils/logger.js';
+import { DATABASE } from '../constants.js';
 
 // Get directory and filename info in ESM
 const __filename = fileURLToPath(import.meta.url);
@@ -14,9 +15,9 @@ const basename = path.basename(__filename);
 
 const db = {};
 
-const sequelize = new Sequelize(process.env.DB_DATABASE, process.env.DB_USERNAME, process.env.DB_PASSWORD, {
-  host: process.env.DB_HOST,
-  port: process.env.DB_PORT,
+const sequelize = new Sequelize(DATABASE.NAME, DATABASE.USERNAME, DATABASE.PASSWORD, {
+  host: DATABASE.HOST,
+  port: DATABASE.PORT,
   dialect: 'postgres',
   define: {
     // The `timestamps` field specify whether or not the `createdAt` and `updatedAt` fields will be created.
@@ -25,8 +26,21 @@ const sequelize = new Sequelize(process.env.DB_DATABASE, process.env.DB_USERNAME
     updatedAt: 'updatedAt',
     createdAt: 'createdAt',
   },
-  logging: false,
-  benchmark: false,
+  logging: DATABASE.DEBUG
+    ? (sql, timing) => {
+        // remove 'Executed (default): ' from the SQL string
+        sql = sql.replace('Executed (default): ', '');
+        // Format the SQL query
+        // sql = format(sql, {
+        //   language: 'spark',
+        //   tabWidth: 2,
+        //   keywordCase: 'upper',
+        //   linesBetweenQueries: 2,
+        // });
+        logger.debug(`${chalk.bgBlue(' SQL ')}\n${highlight(sql)}\n${chalk.bgCyan(' Execution time ')} ${timing} ms\n`);
+      }
+    : false,
+  benchmark: true,
 });
 
 // In ESM we need to use dynamic imports for the model files

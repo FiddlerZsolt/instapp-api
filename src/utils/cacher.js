@@ -33,11 +33,11 @@ export default class Cacher {
       maxParamsLength: 1000,
       port: 6379,
       host: '127.0.0.1',
-      username: 'default',
-      password: 'my-top-secret',
+      username: '',
+      password: '',
       db: 0,
       ttl: 60 * 60,
-      debug: false,
+      debug: process.env.REDIS_DEBUG === 'true',
       ...opts,
     };
 

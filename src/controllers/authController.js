@@ -126,6 +126,7 @@ export const getCurrentUser = async (req, res) => {
     const notFoundError = new NotFoundError('User not found');
 
     if (!req.context?.meta?.user) {
+      logger.error('User not found in context');
       return res.status(404).json(notFoundError);
     }
 
@@ -134,6 +135,7 @@ export const getCurrentUser = async (req, res) => {
     });
 
     if (!user) {
+      logger.error('User not found in database');
       return res.status(404).json(notFoundError);
     }
 

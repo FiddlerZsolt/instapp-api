@@ -1,16 +1,11 @@
 import winston from 'winston';
 import path from 'path';
-import util from 'util';
 import chalk from 'chalk';
 import { DateTime } from 'luxon';
-import { fileURLToPath } from 'url';
 import { env } from 'process';
+import { LOGGER } from '../constants.js';
 
 const { combine, timestamp, printf, json } = winston.format;
-
-// Get directory name in ESM
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
 
 const errorTypeFilter = (type) => {
   return winston.format((info) => {
@@ -24,7 +19,7 @@ const errorTypeFilter = (type) => {
 const generateLogTable = (data) => {
   const { level, requestId, method, url, responseTime, statusCode, isCache } = data;
   const tableWidth = 80;
-  const currentDateTime = DateTime.now().toFormat('yyyy-MM-dd TT ZZ');
+  const currentDateTime = DateTime.now().toFormat(LOGGER.DATE_FORMAT);
   const chars = {
     topLeft: '┌',
     topRight: '┐',
@@ -60,12 +55,12 @@ const generateLogTable = (data) => {
   const environtmentInfoPadding = tableWidth - timeInfo.length - 2;
 
   let duration = responseTime;
-  if (responseTime > 1000) duration = chalk.red(`${Number(responseTime / 1000)} s`);
-  else duration = color(`${Number(responseTime)} ms`);
+  if (responseTime > 1000) duration = `${Number(responseTime / 1000)} s`;
+  else duration = `${Number(responseTime)} ms`;
 
   const headerInfo = `ID: ${requestId}`;
   const responseInfo = `${duration}`;
-  const headerPadding = tableWidth - headerInfo.length - responseInfo.length + 8;
+  const headerPadding = tableWidth - headerInfo.length - responseInfo.length - 2;
 
   // Create main content
   const requestInfo = `<= ${statusCode} ${method} ${url}${isCache ? ' *' : ''}`;
@@ -88,72 +83,67 @@ const generateLogTable = (data) => {
 
 // Configure Winston logger
 const requestLogger = winston.createLogger({
-  level: process.env.LOG_LEVEL || 'info',
+  level: LOGGER.REQUEST_LOG_LEVEL,
   format: combine(timestamp(), json()),
   transports: [
     new winston.transports.Console({
       format: combine(printf((data) => generateLogTable(data))),
     }),
     new winston.transports.File({
-      filename: path.join(__dirname, '../../storage/logs/error.log'),
+      filename: path.join(LOGGER.LOG_DIR, '/', LOGGER.ERROR_LOG_FILE),
       level: 'error',
       format: combine(errorTypeFilter('VALIDATION_ERROR'), json()),
     }),
     new winston.transports.File({
-      filename: path.join(__dirname, '../../storage/logs/combined.log'),
+      filename: path.join(LOGGER.LOG_DIR, '/', LOGGER.COMBINED_LOG_FILE),
       format: combine(errorTypeFilter('VALIDATION_ERROR'), json()),
     }),
   ],
 });
 
-const logger = winston.createLogger({
-  level: process.env.LOG_LEVEL || 'debug',
-  format: combine(timestamp(), json()),
-  transports: [
-    new winston.transports.Console({
-      format: combine(
-        printf((data) => {
-          const { level, message } = data;
-          let color = chalk.white;
-          switch (level) {
-            case 'error':
-              color = chalk.red;
-              break;
-            case 'warn':
-              color = chalk.yellow;
-              break;
-            case 'info':
-              color = chalk.blue;
-              break;
-            case 'debug':
-              color = chalk.green;
-              break;
-            default:
-              color = chalk.white;
-          }
+const logger = {
+  formatLogMessage: function (level) {
+    // Change the color of the log message based on the level
+    let color = chalk.white;
+    switch (level) {
+      case 'error':
+        color = chalk.red;
+        break;
+      case 'warn':
+        color = chalk.yellow;
+        break;
+      case 'info':
+        color = chalk.blue;
+        break;
+      case 'debug':
+        color = chalk.green;
+        break;
+      default:
+        color = chalk.white;
+        break;
+    }
 
-          // Format the date
-          const formattedDate = DateTime.now().toFormat('yyyy-MM-dd TT ZZ');
+    // Format the date
+    const formattedDate = DateTime.now().toFormat(LOGGER.DATE_FORMAT);
 
-          // Format the log message
-          let logMessage = `${formattedDate} [${level}] ${message}`;
-
-          // Add data if present (excluding timestamp which we already handled)
-          if (data?.data && Object.keys(data.data).length > 0) {
-            const formattedMetadata = util.inspect(data.data, {
-              colors: true,
-              depth: 5,
-              compact: false,
-            });
-            logMessage += `\n${chalk.gray(formattedMetadata)}`;
-          }
-
-          return color(logMessage);
-        })
-      ),
-    }),
-  ],
-});
+    return `${formattedDate} ${color(`[${level}]`)}`;
+  },
+  info: function (...args) {
+    console.info(this.formatLogMessage('info'), ...args);
+  },
+  warn: function (...args) {
+    console.warn(this.formatLogMessage('warn'), ...args);
+  },
+  error: function (...args) {
+    console.error(this.formatLogMessage('error'), ...args);
+  },
+  debug: function (...args) {
+    console.debug(this.formatLogMessage('debug'), ...args);
+  },
+  log: function (...args) {
+    console.log(this.formatLogMessage('log'), ...args);
+  },
+};
 
 const winstonMiddleware = (req, res, next) => {
   const start = Date.now(); // Record the start time

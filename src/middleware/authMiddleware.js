@@ -1,5 +1,5 @@
 import { User, Device } from '../models/index.js';
-import { UnauthorizedError } from '../utils/errors.js';
+import { InternalServerError, UnauthorizedError } from '../utils/errors.js';
 import { logger } from '../utils/logger.js';
 
 export const authorization = async (req, res, next) => {
@@ -26,10 +26,12 @@ export const authorization = async (req, res, next) => {
 
       // Add user and device to request object
       req.context.meta.device = device.toJSON();
-      req.context.meta.user = device.user.toJSON();
+      if (device.user) {
+        req.context.meta.user = device.user.toJSON();
+      }
 
       // if (process.env.NODE_ENV === 'development') {
-      //  logger.info('Authenticated:', req.context.meta);
+      //   logger.info('Authenticated:', req.context.meta);
       // }
       return next();
     }
@@ -37,8 +39,8 @@ export const authorization = async (req, res, next) => {
     // If no token was found
     throw new UnauthorizedError();
   } catch (error) {
-    // If error is already one of our custom errors, pass it along
-    logger.error(error);
-    return res.status(error.statusCode).json(error);
+    const handledError = !error.statusCode ? new InternalServerError() : error;
+    logger.error(handledError);
+    return res.status(handledError.statusCode).json(handledError);
   }
 };
