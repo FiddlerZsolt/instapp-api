@@ -8,6 +8,7 @@ const createContextMiddleware = (customParams) => {
     try {
       // Generate a unique ID for the request
       req.id = uuidv4();
+      res.setHeader('X-Request-ID', req.id);
 
       // Create a context object that includes allParams and other useful request info
       req.context = {

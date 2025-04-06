@@ -3,6 +3,10 @@ import { cwd } from 'process';
 const SERVER_CONFIGURATION = {
   PORT: process.env.PORT || 3000,
   NODE_ENV: process.env.NODE_ENV || 'development',
+  CORS: {
+    ALLOWED_ORIGINS: process.env.ALLOWED_ORIGINS?.split(',') || 'http://localhost:3000',
+    CREDENTIALS: this.NODE_ENV === 'production',
+  },
 };
 
 const DATABASE = {
@@ -18,6 +22,7 @@ const DATABASE = {
 const REDIS_CONFIG = {
   HOST: process.env.REDIS_HOST || 'localhost',
   PORT: process.env.REDIS_PORT || 6379,
+  USERNAME: process.env.REDIS_USERNAME || 'default',
   PASSWORD: process.env.REDIS_PASSWORD || '',
   DB: process.env.REDIS_DB || 0,
   DEBUG: process.env.REDIS_DEBUG === 'true',
