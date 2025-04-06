@@ -2,9 +2,9 @@ import express from 'express';
 import cors from 'cors';
 import helmet from 'helmet';
 
-import { winstonMiddleware } from './utils/logger.js';
 import createContextMiddleware from './middleware/createContextMiddleware.js';
 import errorHandler from './middleware/errorMiddleware.js';
+import requestLoggerMiddleware from './middleware/requestLoggerMiddleware.js';
 
 import initRoutes from './routes/index.js';
 import Cacher, { cacheMiddleware } from './utils/cacher.js';
@@ -29,7 +29,7 @@ app.use(helmet());
 // Middleware to create context for each request
 app.use(createContextMiddleware({ cacher }));
 // Middleware to log requests
-app.use(winstonMiddleware);
+app.use(requestLoggerMiddleware);
 // Middleware to set cache
 app.use(cacheMiddleware);
 
