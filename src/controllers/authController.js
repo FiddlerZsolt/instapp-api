@@ -4,7 +4,15 @@ import { NotFoundError, UnauthorizedError } from '../utils/errors.js';
 import { ApiResponse } from '../utils/response.js';
 import { logger } from '../utils/logger.js';
 
-// Register a new user
+/**
+ * Register user
+ *
+ * @route POST /auth/register
+ * @group Auth - Operations about user
+ * @returns {object} 201 - Created
+ * @returns {object} 400 - Bad request
+ * @returns {object} 500 - Server error
+ */
 export const register = async (req, res) => {
   const { name, username, email, password } = req.context.params;
 
@@ -53,7 +61,15 @@ export const register = async (req, res) => {
   }
 };
 
-// Login user
+/**
+ * Login user
+ *
+ * @route POST /auth/login
+ * @group Auth - Operations about user
+ * @returns {object} 200 - Success
+ * @returns {object} 401 - Unauthorized
+ * @returns {object} 500 - Server error
+ */
 export const login = async (req, res) => {
   try {
     const { email, password } = req.body;
@@ -96,7 +112,15 @@ export const login = async (req, res) => {
   }
 };
 
-// Get current user
+/**
+ * Get current user
+ *
+ * @route GET /auth/me
+ * @group Auth - Operations about user
+ * @returns {object} 200 - User object
+ * @returns {object} 404 - User not found
+ * @returns {object} 500 - Server error
+ */
 export const getCurrentUser = async (req, res) => {
   try {
     const notFoundError = new NotFoundError('User not found');

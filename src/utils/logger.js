@@ -1,9 +1,10 @@
 import winston from 'winston';
 import path from 'path';
-import { fileURLToPath } from 'url';
-import { env } from 'process';
+import util from 'util';
 import chalk from 'chalk';
 import { DateTime } from 'luxon';
+import { fileURLToPath } from 'url';
+import { env } from 'process';
 
 const { combine, timestamp, printf, json } = winston.format;
 
@@ -22,7 +23,7 @@ const errorTypeFilter = (type) => {
 
 const generateLogTable = (data) => {
   const { level, requestId, method, url, responseTime, statusCode, isCache } = data;
-  const tableWidth = 100;
+  const tableWidth = 80;
   const currentDateTime = DateTime.now().toFormat('yyyy-MM-dd TT ZZ');
   const chars = {
     topLeft: '┌',
@@ -56,12 +57,15 @@ const generateLogTable = (data) => {
   // Create header components
   const timeInfo = `${currentDateTime}`;
   // const envInfo = `${envText}`;
-  // const environtmentInfoPadding = tableWidth - timeInfo.length - envInfo.length - 3;
   const environtmentInfoPadding = tableWidth - timeInfo.length - 2;
 
+  let duration = responseTime;
+  if (responseTime > 1000) duration = chalk.red(`${Number(responseTime / 1000)} s`);
+  else duration = color(`${Number(responseTime)} ms`);
+
   const headerInfo = `ID: ${requestId}`;
-  const responseInfo = `${responseTime}ms`;
-  const headerPadding = tableWidth - headerInfo.length - responseInfo.length - 2;
+  const responseInfo = `${duration}`;
+  const headerPadding = tableWidth - headerInfo.length - responseInfo.length + 8;
 
   // Create main content
   const requestInfo = `<= ${statusCode} ${method} ${url}${isCache ? ' *' : ''}`;
@@ -127,8 +131,24 @@ const logger = winston.createLogger({
             default:
               color = chalk.white;
           }
-          // return color(`${DateTime.now()} [${level}] ${message}`);
-          return color(`${DateTime.now().toFormat('yyyy-MM-dd TT ZZ')} [${level}] ${message}`);
+
+          // Format the date
+          const formattedDate = DateTime.now().toFormat('yyyy-MM-dd TT ZZ');
+
+          // Format the log message
+          let logMessage = `${formattedDate} [${level}] ${message}`;
+
+          // Add data if present (excluding timestamp which we already handled)
+          if (data?.data && Object.keys(data.data).length > 0) {
+            const formattedMetadata = util.inspect(data.data, {
+              colors: true,
+              depth: 5,
+              compact: false,
+            });
+            logMessage += `\n${chalk.gray(formattedMetadata)}`;
+          }
+
+          return color(logMessage);
         })
       ),
     }),
@@ -155,7 +175,7 @@ const winstonMiddleware = (req, res, next) => {
       statusCode: res.statusCode,
       statusMessage: res.statusMessage,
       body: req.body,
-      isCache: req.context.isCache,
+      isCache: req.context.$action.isCache,
     };
 
     // Log the request using winston

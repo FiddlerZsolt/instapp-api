@@ -5,6 +5,27 @@ import chalk from 'chalk';
 import { Duration } from 'luxon';
 import { logger } from './logger.js';
 
+/**
+ * Redis caching utility class for API response caching
+ *
+ * @class Cacher
+ * @export {Cacher}
+ *
+ * @example
+ * const cacher = new Cacher({
+ *   prefix: 'MyAPI:',
+ *   debug: true
+ * }).init();
+ *
+ * // Store data in cache
+ * await cacher.set('user:123', userData, 3600);
+ *
+ * // Retrieve cached data
+ * const data = await cacher.get('user:123');
+ *
+ * // Delete cached data
+ * await cacher.del('user:123');
+ */
 export default class Cacher {
   constructor(opts) {
     this.opts = {
@@ -26,6 +47,9 @@ export default class Cacher {
     }
   }
 
+  /**
+   * Initializes the Redis client and sets up event listeners.
+   */
   init() {
     this.client = new Redis({
       port: this.opts.port,
@@ -53,6 +77,17 @@ export default class Cacher {
     return this;
   }
 
+  /**
+   * Retrieves a value from the cache using the provided key.
+   * If the key is null or undefined, it returns null.
+   *
+   * @param {string} key - The cache key to retrieve the value for.
+   * @returns {Promise<any>} - The cached value or null if not found.
+   *
+   * @example
+   * // Retrieve cached data
+   * const data = await cacher.get('user:123');
+   */
   async get(key) {
     if (key === null || key === undefined) return null;
 
@@ -74,6 +109,20 @@ export default class Cacher {
     }
   }
 
+  /**
+   * Stores a value in the cache with an optional TTL (Time To Live).
+   * If the key or data is null, it does nothing.
+   *
+   * @param {string} key - The cache key to store the value for.
+   * @param {any} data - The data to cache.
+   * @param {number} [ttl] - The time-to-live for the cached data in seconds.
+   * @returns {Promise<"OK">} - The result of the cache operation.
+   *
+   * @example
+   * // Set data in cache
+   * await cacher.set('user:123', userData, 3600);
+   *
+   */
   async set(key, data, ttl) {
     if (this.opts.debug) {
       logger.info('\n\nSetting cache value: ', { key, ttl });
@@ -101,6 +150,19 @@ export default class Cacher {
     }
   }
 
+  /**
+   * Deletes cache entries based on the provided key(s).
+   *
+   * @param {string|string[]} deleteTargets - The cache key(s) to delete.
+   * @returns {Promise<boolean>} - Returns true if any keys were deleted, false otherwise.
+   *
+   * @example
+   * // Delete a single cache entry
+   * await cacher.del('user:123');
+   *
+   * // Delete multiple cache entries
+   * await cacher.del(['user:123', 'user:456']);
+   */
   async del(deleteTargets) {
     const targets = Array.isArray(deleteTargets) ? deleteTargets : [deleteTargets];
 
@@ -143,6 +205,18 @@ export default class Cacher {
     }
   }
 
+  /**
+   * Generates a unique key from an object by recursively converting it to a string.
+   * This is useful for creating cache keys based on complex objects.
+   *
+   * @param {Object} obj - The object to generate a key from.
+   * @returns {string} - The generated key as a string.
+   *
+   * @example
+   * const obj = { id: 123, name: 'John Doe', nested: { age: 30 } };
+   * const key = _generateKeyFromObject(obj);
+   * // key: "id|123|name|John Doe|nested|age|30"
+   */
   _generateKeyFromObject(obj) {
     if (obj === null || obj === undefined) return 'null';
 
@@ -161,6 +235,18 @@ export default class Cacher {
     return obj.toString();
   }
 
+  /**
+   * Generates a hashed key based on the provided key.
+   * If the key length exceeds the specified maxParamsLength, it hashes the key using SHA-256.
+   * This is useful for creating cache keys that are not too long while still being unique.
+   *
+   * @param {string} key - The key to hash.
+   * @returns {string} - The hashed key.
+   *
+   * @example
+   * const hashedKey = _hashedKey('long-key-string-that-exceeds-max-length');
+   * // hashedKey: "shortened-key|hashed-value"
+   */
   _hashedKey(key) {
     if (typeof key !== 'string') key = String(key);
 
@@ -175,11 +261,45 @@ export default class Cacher {
     return key.substring(0, prefixLength) + base64Hash;
   }
 
+  /**
+   * Retrieves a value from the request parameters or metadata based on the provided key.
+   * If the key starts with '#', it looks for the value in the metadata.
+   * Otherwise, it looks for the value in the request parameters.
+   *
+   * @param {string} key - The key to retrieve the value for.
+   * @param {Object} params - The request parameters.
+   * @param {Object} meta - The request metadata.
+   * @returns {any} - The retrieved value or undefined if not found.
+   *
+   * @example
+   * const value = getParamMetaValue('#metaKey', params, meta);
+   * // value: metaValue
+   * const value2 = getParamMetaValue('paramKey', params, meta);
+   * // value2: paramValue
+   */
   getParamMetaValue(key, params, meta) {
     if (key.startsWith('#') && meta != null) return _.get(meta, key.slice(1));
     else if (params != null) return _.get(params, key);
   }
 
+  /**
+   * Generates a cache key based on the provided base key and request context.
+   * It combines the base key with additional keys from the request parameters or metadata.
+   * The generated key is hashed to ensure it doesn't exceed the maximum length.
+   *
+   * @param {string} cacheKey - The base cache key.
+   * @param {Object} request - The request object containing context with parameters and metadata.
+   * @param {Array<string>} keys - Additional keys to include in the cache key.
+   * @returns {string} - The generated cache key.
+   *
+   * @example
+   * const cacheKey = generateCacheKey('user', request, ['params.id', '#meta.key']);
+   * // cacheKey: "user:hashed-value"
+   *
+   * @example
+   * const cacheKey = generateCacheKey('user', request, []);
+   * // cacheKey: "user:hashed-value"
+   */
   generateCacheKey(cacheKey, request, keys) {
     const { params, meta } = request.context;
     if (!params && !meta) return cacheKey;
@@ -214,8 +334,32 @@ export default class Cacher {
   }
 }
 
+/**
+ * Creates a cache middleware for Express routes.
+ *
+ * This middleware attempts to retrieve and serve cached data based on the provided options.
+ * If cached data is found, it immediately sends the response and prevents further middleware execution.
+ * If no cache is found, it passes control to the next middleware in the chain.
+ *
+ * @param {Object} options - The caching configuration options
+ * @param {string|Function} options.key - Base cache key or function to generate it
+ * @param {string|Function} options.duration - Base cache key or function to generate it
+ * @param {Array<string>} [options.keys=[]] - Additional request properties to include in the cache key
+ * @param {Object} [options.other] - Any other caching options passed to the cacher implementation
+ *
+ * @returns {Function} Express middleware function
+ * @async
+ *
+ * @example
+ * // Basic usage with a static key
+ * app.get('/users', cache({ key: 'users-list' }), getUsersHandler);
+ *
+ * @example
+ * // With dynamic keys from request parameters
+ * app.get('/users/:id', cache({ key: 'user', keys: ['params.id'] }), getUserHandler);
+ */
 export const cache = (options) => async (req, res, next) => {
-  req.context.cacheOptions = options;
+  req.context.$action.cacheOptions = options;
   const { cacher } = req.context;
 
   if (cacher.opts.debug) logger.debug('Cache options', options);
@@ -228,7 +372,7 @@ export const cache = (options) => async (req, res, next) => {
     if (cachedData) {
       if (cacher.opts.debug) logger.info('Cache found');
 
-      req.context.isCache = true;
+      req.context.$action.isCache = true;
       return res.json(cachedData); // Return cached data and stop middleware chain
     }
 
@@ -244,26 +388,44 @@ export const cache = (options) => async (req, res, next) => {
   }
 };
 
-export const saveCacheMiddleware = (req, res, next) => {
+/**
+ * Middleware for caching HTTP responses.
+ * This middleware extends the res.json method to cache successful GET requests based on provided options.
+ *
+ * @param {Object} req - Express request object containing the context with cacher and action information
+ * @param {Object} req.context - Context object containing caching configuration
+ * @param {Cacher} req.context.cacher - Cacher instance used for caching operations
+ * @param {Object} req.context.$action - Action object potentially containing cache options
+ * @param {Object} req.context.$action.cacheOptions - Configuration for caching the response
+ * @param {string} req.context.$action.cacheOptions.key - Base cache key
+ * @param {import('luxon').DurationLikeObject} [req.context.$action.cacheOptions.duration] - TTL (Time To Live) for cached data in seconds
+ * @param {String[]} [req.context.$action.cacheOptions.keys] - Additional keys to include in cache key generation
+ * @param {Object} res - Express response object
+ * @param {Function} next - Express next function to continue middleware chain
+ *
+ * @returns {void}
+ */
+export const cacheMiddleware = (req, res, next) => {
   const originalJson = res.json;
+  const { cacher, $action } = req.context;
 
   res.json = async function (data) {
-    if (!req?.context?.cacheOptions) {
+    if (!$action?.cacheOptions) {
       if (req.context.cacher.opts.debug) {
         logger.debug('No cache options provided');
       }
       return originalJson.call(this, data);
     }
 
-    if (res.statusCode === 200 && req.method === 'GET' && !req.context.isCache) {
-      const { key, duration, keys } = req.context.cacheOptions;
-      const ttl = duration ?? req.context.cacher.opts.ttl;
+    if (res.statusCode === 200 && req.method === 'GET' && !$action.isCache) {
+      const { key, duration, keys } = $action.cacheOptions;
+      const ttl = duration ?? cacher.opts.ttl;
       // Save cache data
-      const cacheKey = req.context.cacher.generateCacheKey(key, req, keys || []);
+      const cacheKey = cacher.generateCacheKey(key, req, keys || []);
 
       try {
-        await req.context.cacher.set(cacheKey, data, ttl);
-        if (req.context.cacher.opts.debug) {
+        await cacher.set(cacheKey, data, ttl);
+        if (cacher.opts.debug) {
           logger.info('Cached data saved...');
         }
       } catch (error) {
@@ -278,6 +440,20 @@ export const saveCacheMiddleware = (req, res, next) => {
   next();
 };
 
+/**
+ * Converts a duration object into seconds.
+ *
+ * @param {Object} duration - The duration object to convert. Expected to be compatible with the Duration.fromObject method.
+ * @returns {number} The duration converted to seconds.
+ *
+ * @example
+ * // Returns 3600 (1 hour in seconds)
+ * cacheDuration({ hours: 1 });
+ *
+ * @example
+ * // Returns 90 (1 minute and 30 seconds in seconds)
+ * cacheDuration({ minutes: 1, seconds: 30 });
+ */
 export const cacheDuration = (duration) => {
   const dur = Duration.fromObject(duration);
   return dur.as('seconds');

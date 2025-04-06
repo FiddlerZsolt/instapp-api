@@ -3,6 +3,28 @@ import { ValidationError } from '../utils/errors.js';
 
 const v = new Validator();
 
+/**
+ * Middleware to validate request parameters using fastest-validator
+ *
+ * @param {Object} schema - The validation schema, see fastest-validator documentation for details
+ * @returns {Function} - Middleware function
+ *
+ * @example
+ * // Example usage in an Express route
+ * router.post(
+ *   '/register',
+ *   validate({
+ *     name: { type: 'string', optional: true },
+ *     username: { type: 'string', empty: false },
+ *     email: { type: 'email', empty: false },
+ *     password: { type: 'string', empty: false, min: 6 },
+ *     confirmPassword: { type: 'equal', field: 'password' },
+ *     platform: { type: 'enum', values: ['android', 'ios'] },
+ *     deviceName: { type: 'string', empty: false },
+ *   }),
+ *   authController.register
+ * );
+ */
 export const validate = (schema) => {
   return (req, res, next) => {
     if (!schema) {
