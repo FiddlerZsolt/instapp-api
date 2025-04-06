@@ -3,7 +3,8 @@ import { ApiError } from '../utils/errors.js';
 
 /**
  * Global error handler middleware for the Express application
- * Formats and sends appropriate error responses based on error type
+ * Formats and sends appropriate error responses based on error type.
+ * This should be the last middleware in the stack
  */
 // eslint-disable-next-line no-unused-vars
 export default function errorHandler(err, req, res, next) {

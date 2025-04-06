@@ -1,4 +1,3 @@
-import { NotFoundError } from '../utils/errors.js';
 import { ApiResponse } from '../utils/response.js';
 import authRoutes from './auth.js';
 import deviceRoutes from './devices.js';
@@ -24,11 +23,6 @@ function initRoutes(app) {
   );
 
   app.use('/api', apiRouter);
-
-  // Handle 404 - Route not found (using our custom error)
-  app.use((req, res, next) =>
-    next(new NotFoundError('The requested resource was not found on this server', 'RESOURCE_NOT_FOUND'))
-  );
 }
 
 export default initRoutes;

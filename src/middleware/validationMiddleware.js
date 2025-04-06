@@ -1,6 +1,6 @@
 import Validator from 'fastest-validator';
 import { ValidationError } from '../utils/errors.js';
-import { logger } from 'sequelize/lib/utils/logger';
+import { logger } from '../utils/logger.js';
 
 const v = new Validator();
 

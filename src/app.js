@@ -5,6 +5,7 @@ import helmet from 'helmet';
 import createContextMiddleware from './middleware/createContextMiddleware.js';
 import errorHandler from './middleware/errorMiddleware.js';
 import requestLoggerMiddleware from './middleware/requestLoggerMiddleware.js';
+import notFoundHandler from './routes/notFound.js';
 
 import initRoutes from './routes/index.js';
 import Cacher, { cacheMiddleware } from './utils/cacher.js';
@@ -37,6 +38,10 @@ app.use(cacheMiddleware);
 
 initRoutes(app);
 
+// Handle 404 - Route not found (using our custom error)
+app.use(notFoundHandler);
+
+// Middleware to handle errors
 app.use(errorHandler);
 
 export default app;
