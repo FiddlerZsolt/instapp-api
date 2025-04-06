@@ -1,5 +1,6 @@
 import Validator from 'fastest-validator';
 import { ValidationError } from '../utils/errors.js';
+import { logger } from 'sequelize/lib/utils/logger';
 
 const v = new Validator();
 
@@ -33,6 +34,7 @@ export const validate = (schema) => {
     }
 
     try {
+      // TODO: Cache schemas for better performance
       // Check if the schema is valid
       const check = v.compile(schema);
 
@@ -47,6 +49,10 @@ export const validate = (schema) => {
       // Validation failed, throw a ValidationError
       throw new ValidationError(validationResult);
     } catch (error) {
+      const isValidationError = error instanceof ValidationError;
+      if (!isValidationError) {
+        logger.error('Error in Validation middleware:', error);
+      }
       next(error);
     }
   };
