@@ -3,6 +3,7 @@ import { User, Device, sequelize } from '../models/index.js';
 import { NotFoundError, UnauthorizedError, ValidationError } from '../utils/errors.js';
 import { ApiResponse } from '../utils/response.js';
 import { logger } from '../utils/logger.js';
+import { Op } from 'sequelize';
 
 /**
  * Register user
@@ -16,38 +17,45 @@ import { logger } from '../utils/logger.js';
 export const register = async (req, res, next) => {
   const { name, username, email, password } = req.context.params;
 
-  // Check if user already exists
-  const userExists = await User.findOne({ where: { email } });
-  if (userExists) {
-    throw new ValidationError('User with this email already exists');
-  }
-
-  // Hash password
-  const salt = await bcrypt.genSalt(10);
-  const hashedPassword = await bcrypt.hash(password, salt);
-
   try {
+    // Check if user already exists
+    const userExists = await User.findOne({
+      where: {
+        [Op.or]: [{ username }, { email }],
+      },
+    });
+    if (userExists) {
+      throw new ValidationError('User with this username or email already exists');
+    }
+
+    // Hash password
+    const salt = await bcrypt.genSalt(10);
+    const hashedPassword = await bcrypt.hash(password, salt);
     // Use transaction to create user and update device
-    await sequelize.transaction(async () => {
+    await sequelize.transaction(async (transaction) => {
       // both of these queries will run in the transaction
-      const user = await User.create({
-        username,
-        email,
-        password: hashedPassword,
-        name: name || username, // Using username as name if not provided
-        profileImage: '', // Default empty profile image
-      });
+      const newUser = await User.create(
+        {
+          username,
+          email,
+          password: hashedPassword,
+          name: name || username, // Using username as name if not provided
+          profileImage: '', // Default empty profile image
+        },
+        { transaction }
+      );
 
       await Device.update(
-        { userId: user.id },
+        { userId: newUser.id },
         {
           where: {
             id: req.context.meta.device.id,
           },
+          transaction,
         }
       );
 
-      return user;
+      return newUser;
     });
 
     return ApiResponse.created(res, ApiResponse.baseResponse(true));
@@ -68,7 +76,7 @@ export const register = async (req, res, next) => {
  */
 export const login = async (req, res, next) => {
   try {
-    const { email, password } = req.body;
+    const { email, password } = req.context.params;
     const unAuthError = new UnauthorizedError();
 
     // Check if user exists
