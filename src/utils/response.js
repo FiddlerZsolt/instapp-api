@@ -33,6 +33,18 @@ class ApiResponse {
   static baseResponse(ok = false) {
     return { result: ok ? BASE_RESPONSES.OK : BASE_RESPONSES.FAILED };
   }
+
+  static created(res, item) {
+    return res.status(201).json(item);
+  }
+
+  static success(res, item) {
+    return res.status(200).json(item);
+  }
+
+  static notFound(res, item) {
+    return res.status(404).json(item);
+  }
 }
 
 /**

@@ -18,10 +18,6 @@ const errorTypeFilter = (type) => {
 const generateLogTable = (data) => {
   const { level, requestId, method, url, responseTime, statusCode, isCache } = data;
 
-  console.log('\n\n');
-  console.log(data);
-  console.log('\n\n');
-
   const tableWidth = 80;
   const currentDateTime = DateTime.now().toFormat(LOGGER.DATE_FORMAT);
   const chars = {

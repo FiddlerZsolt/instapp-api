@@ -1,6 +1,6 @@
 import bcrypt from 'bcryptjs';
 import { User, Device, sequelize } from '../models/index.js';
-import { NotFoundError, UnauthorizedError } from '../utils/errors.js';
+import { NotFoundError, UnauthorizedError, ValidationError } from '../utils/errors.js';
 import { ApiResponse } from '../utils/response.js';
 import { logger } from '../utils/logger.js';
 
@@ -13,15 +13,13 @@ import { logger } from '../utils/logger.js';
  * @returns {object} 400 - Bad request
  * @returns {object} 500 - Server error
  */
-export const register = async (req, res) => {
+export const register = async (req, res, next) => {
   const { name, username, email, password } = req.context.params;
 
   // Check if user already exists
   const userExists = await User.findOne({ where: { email } });
   if (userExists) {
-    return res.status(400).json({
-      message: 'User with this email already exists',
-    });
+    throw new ValidationError('User with this email already exists');
   }
 
   // Hash password
@@ -52,12 +50,10 @@ export const register = async (req, res) => {
       return user;
     });
 
-    res.status(201).json(ApiResponse.baseResponse(true));
+    return ApiResponse.created(res, ApiResponse.baseResponse(true));
   } catch (error) {
     logger.error('Registration error:', error);
-    res.status(500).json({
-      message: 'Error registering user',
-    });
+    next(error);
   }
 };
 
@@ -70,28 +66,21 @@ export const register = async (req, res) => {
  * @returns {object} 401 - Unauthorized
  * @returns {object} 500 - Server error
  */
-export const login = async (req, res) => {
+export const login = async (req, res, next) => {
   try {
     const { email, password } = req.body;
     const unAuthError = new UnauthorizedError();
 
-    // Validate input
-    if (!email || !password) {
-      return res.status(400).json({
-        message: 'Please provide email and password',
-      });
-    }
-
     // Check if user exists
     const user = await User.findOne({ where: { email } });
     if (!user) {
-      return res.status(401).json(unAuthError);
+      throw unAuthError;
     }
 
     // Check if password matches
     const isMatch = await bcrypt.compare(password, user.password);
     if (!isMatch) {
-      return res.status(401).json(unAuthError);
+      throw unAuthError;
     }
 
     await Device.update(
@@ -106,9 +95,7 @@ export const login = async (req, res) => {
     res.json(ApiResponse.baseResponse(true));
   } catch (error) {
     logger.error('Login error:', error);
-    res.status(500).json({
-      message: 'Error logging in user',
-    });
+    next(error);
   }
 };
 
@@ -121,13 +108,13 @@ export const login = async (req, res) => {
  * @returns {object} 404 - User not found
  * @returns {object} 500 - Server error
  */
-export const getCurrentUser = async (req, res) => {
+export const getCurrentUser = async (req, res, next) => {
   try {
     const notFoundError = new NotFoundError('User not found');
 
     if (!req.context?.meta?.user) {
       logger.error('User not found in context');
-      return res.status(404).json(notFoundError);
+      throw notFoundError;
     }
 
     const user = await User.findByPk(req.context.meta.user.id, {
@@ -136,12 +123,12 @@ export const getCurrentUser = async (req, res) => {
 
     if (!user) {
       logger.error('User not found in database');
-      return res.status(404).json(notFoundError);
+      throw notFoundError;
     }
 
-    res.json(user);
-  } catch (err) {
-    logger.error(err);
-    res.status(500).json({ message: 'Server error' });
+    res.json(new ApiResponse(user));
+  } catch (error) {
+    logger.error('Get current user error:', error);
+    next(error);
   }
 };

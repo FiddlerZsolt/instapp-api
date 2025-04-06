@@ -2,48 +2,34 @@ import chalk from 'chalk';
 import { DateTime } from 'luxon';
 import { LOGGER } from '../constants.js';
 
-const logger = {
+const COLORS = {
+  error: chalk.red,
+  warn: chalk.yellow,
+  info: chalk.blue,
+  debug: chalk.green,
+  log: chalk.white,
+};
+
+export const logger = {
+  level: 'debug', // Default log level
+
   formatLogMessage: function (level) {
-    // Change the color of the log message based on the level
-    let color = chalk.white;
-    switch (level) {
-      case 'error':
-        color = chalk.red;
-        break;
-      case 'warn':
-        color = chalk.yellow;
-        break;
-      case 'info':
-        color = chalk.blue;
-        break;
-      case 'debug':
-        color = chalk.green;
-        break;
-      default:
-        color = chalk.white;
-        break;
-    }
-
-    // Format the date
+    const color = COLORS[level] || chalk.white;
     const formattedDate = DateTime.now().toFormat(LOGGER.DATE_FORMAT);
-
     return `${formattedDate} ${color(`[${level}]`)}`;
-  },
-  info: function (...args) {
-    console.info(this.formatLogMessage('info'), ...args);
-  },
-  warn: function (...args) {
-    console.warn(this.formatLogMessage('warn'), ...args);
-  },
-  error: function (...args) {
-    console.error(this.formatLogMessage('error'), ...args);
-  },
-  debug: function (...args) {
-    console.debug(this.formatLogMessage('debug'), ...args);
-  },
-  log: function (...args) {
-    console.log(this.formatLogMessage('log'), ...args);
   },
 };
 
-export { logger };
+// Log levels in order of importance
+const LOG_LEVELS = ['error', 'warn', 'info', 'debug', 'log'];
+
+// Add log methods dynamically
+LOG_LEVELS.forEach((level, index) => {
+  logger[level] = function (...args) {
+    // Only log if the current level is sufficient
+    const currentLevelIndex = LOG_LEVELS.indexOf(this.level);
+    if (index <= currentLevelIndex) {
+      console[level](this.formatLogMessage(level), ...args);
+    }
+  };
+});

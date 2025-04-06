@@ -3,10 +3,10 @@ import http from 'http';
 import { sequelize } from './src/models/index.js';
 import { logger } from './src/utils/logger.js';
 import chalk from 'chalk';
+import { SERVER_CONFIGURATION } from './src/constants.js';
 
 // Get port from environment and store in Express
-const port = process.env.PORT || 3000;
-app.set('port', port);
+app.set('port', SERVER_CONFIGURATION.PORT);
 
 // Create HTTP server
 const server = http.createServer(app);
@@ -18,7 +18,7 @@ async function startServer() {
     await sequelize.sync({ force: false });
     logger.info(`${chalk.blue('Database')} synchronized successfully`);
 
-    server.listen(port);
+    server.listen(SERVER_CONFIGURATION.PORT);
     server.on('error', onError);
     server.on('listening', onListening);
   } catch (error) {
@@ -32,16 +32,14 @@ function onError(error) {
     throw error;
   }
 
-  const bind = typeof port === 'string' ? 'Port ' + port : 'Port ' + port;
-
   // Handle specific listen errors with friendly messages
   switch (error.code) {
     case 'EACCES':
-      logger.error(bind + ' requires elevated privileges');
+      logger.error(`Port ${SERVER_CONFIGURATION.PORT} requires elevated privileges`);
       process.exit(1);
       break;
     case 'EADDRINUSE':
-      logger.error(bind + ' is already in use');
+      logger.error(`Port ${SERVER_CONFIGURATION.PORT} is already in use`);
       process.exit(1);
       break;
     default:
@@ -63,6 +61,7 @@ async function stopServer() {
     try {
       await sequelize.close();
       logger.info('Database connection closed.');
+      logger.info('Bye bye!');
       process.exit(0);
     } catch (error) {
       logger.error('Error closing database connection:', error);

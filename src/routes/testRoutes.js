@@ -5,6 +5,8 @@
 
 import express from 'express';
 import { validate } from '../middleware/validationMiddleware.js';
+import { logger } from '../utils/logger.js';
+import { ApiResponse } from '../utils/response.js';
 
 const router = express.Router();
 
@@ -20,31 +22,15 @@ router.get(
       },
     },
   }),
-  async (req, res) => {
+  async (req, res, next) => {
     try {
       await req.context.cacher.del(req.context.params.keys);
-      res.status(200).json({ message: 'Cache cleared successfully' });
+      ApiResponse.success(res, {
+        message: 'Cache cleared successfully',
+      });
     } catch (error) {
-      res.status(500).json({ message: 'Error clearing cache', error });
-    }
-  }
-);
-
-// Clear specific cache
-router.get(
-  '/clear-cache/:key',
-  validate({
-    key: {
-      type: 'string',
-      empty: false,
-    },
-  }),
-  async (req, res) => {
-    try {
-      await req.context.cacher.del(req.context.params.key);
-      res.status(200).json({ message: `Cache for key ${req.context.params.key} cleared successfully` });
-    } catch (error) {
-      res.status(500).json({ message: 'Error clearing cache', error });
+      logger.error('Error clearing cache', error);
+      next(error);
     }
   }
 );

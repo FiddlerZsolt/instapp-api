@@ -5,7 +5,8 @@ import { ApiError } from '../utils/errors.js';
  * Global error handler middleware for the Express application
  * Formats and sends appropriate error responses based on error type
  */
-export default function errorHandler(err, req, res) {
+// eslint-disable-next-line no-unused-vars
+export default function errorHandler(err, req, res, next) {
   // Log the error for debugging purposes
   logger.error(err);
 
@@ -25,9 +26,10 @@ export default function errorHandler(err, req, res) {
 
   // Hide sensitive error details in production
   const error = {
-    message,
+    statusCode,
     code: errorCode,
     data,
+    message,
   };
 
   // Send the error response

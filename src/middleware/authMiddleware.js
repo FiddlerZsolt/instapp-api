@@ -41,6 +41,6 @@ export const authorization = async (req, res, next) => {
   } catch (error) {
     const handledError = !error.statusCode ? new InternalServerError() : error;
     logger.error(handledError);
-    return res.status(handledError.statusCode).json(handledError);
+    next(handledError);
   }
 };

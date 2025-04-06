@@ -72,8 +72,8 @@ class ConflictError extends ApiError {
  * Use when validation fails
  */
 class ValidationError extends ApiError {
-  constructor(message = 'Validation failed', code = 'VALIDATION_ERROR', data = null) {
-    super(message, 422, code, data);
+  constructor(data = null) {
+    super('Validation failed', 422, 'VALIDATION_ERROR', data);
   }
 }
 

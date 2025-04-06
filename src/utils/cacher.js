@@ -47,8 +47,8 @@ export default class Cacher {
     }
 
     if (this.opts.debug) {
-      logger.info(`${chalk.red('Redis')} client starts in ${chalk.bgBlue(' debug ')} mode`);
-      logger.info('Redis options:', this.opts);
+      logger.debug(`${chalk.red('Redis')} client starts in ${chalk.bgBlue(' debug ')} mode`);
+      logger.debug('Redis options:', this.opts);
     }
   }
 
@@ -67,16 +67,16 @@ export default class Cacher {
     const redIsText = chalk.red('Redis');
 
     this.client.on('connect', () => {
-      logger.info(`${redIsText} client ${chalk.blueBright('connected')}`);
+      logger.debug(`${redIsText} client ${chalk.blueBright('connected')}`);
     });
     this.client.on('ready', () => {
-      logger.info(`${redIsText} client ${chalk.green('ready')}`);
+      logger.debug(`${redIsText} client ${chalk.green('ready')}`);
     });
     this.client.on('error', (err) => {
       logger.error(`${redIsText} ${chalk.red('error')}`, err);
     });
     this.client.on('end', () => {
-      logger.info(`${redIsText} client ${chalk.yellowBright('disconnected')}`);
+      logger.debug(`${redIsText} client ${chalk.yellowBright('disconnected')}`);
     });
 
     return this;
@@ -99,8 +99,7 @@ export default class Cacher {
     const prefixedKey = this.opts.prefix + key;
 
     if (this.opts.debug) {
-      logger.info('\n\nGetting cache value');
-      logger.info(`Key: ${prefixedKey}`);
+      logger.debug(`Getting cache value: ${prefixedKey}`);
     }
 
     try {
@@ -130,8 +129,8 @@ export default class Cacher {
    */
   async set(key, data, ttl) {
     if (this.opts.debug) {
-      logger.info('\n\nSetting cache value: ', { key, ttl });
-      logger.info('Data: ', data);
+      logger.debug('\n\nSetting cache value: ', { key, ttl });
+      logger.debug('Data: ', data);
     }
 
     if (key == null || data == null) return;
@@ -146,7 +145,7 @@ export default class Cacher {
 
       return set.then((res) => {
         if (this.opts.debug) {
-          logger.info('Cache save response:', chalk.greenBright(res));
+          logger.debug('Cache save response:', chalk.greenBright(res));
         }
         return res;
       });
@@ -177,26 +176,26 @@ export default class Cacher {
           const pattern = `${this.opts.prefix}*${key}*`;
 
           if (this.opts.debug) {
-            logger.info(`\nFinding keys matching pattern: ${chalk.yellow(pattern)}`);
+            logger.debug(`\nFinding keys matching pattern: ${chalk.yellow(pattern)}`);
           }
 
           const keys = await this.client.keys(pattern);
 
           if (keys.length === 0) {
             if (this.opts.debug) {
-              logger.info(`No keys found matching pattern: ${pattern}\n`);
+              logger.debug(`No keys found matching pattern: ${pattern}\n`);
             }
             return 0;
           }
 
           if (this.opts.debug) {
-            logger.info(`Found ${keys.length} keys to delete:\n${keys.join('\n')}\n`);
+            logger.debug(`Found ${keys.length} keys to delete:\n${keys.join('\n')}\n`);
           }
 
           const result = await this.client.del(keys);
 
           if (this.opts.debug) {
-            logger.info(`Cache delete response: ${chalk.greenBright(result)} keys removed\n`);
+            logger.debug(`Cache delete response: ${chalk.greenBright(result)} keys removed\n`);
           }
 
           return result;
@@ -312,23 +311,23 @@ export default class Cacher {
     const keyPrefix = cacheKey + ':';
 
     if (keys.length === 0) {
-      if (this.opts.debug) logger.info('No keys provided', '\n');
+      if (this.opts.debug) logger.debug('No keys provided', '\n');
       return keyPrefix + this._hashedKey(this._generateKeyFromObject(params));
     }
 
     if (keys.length === 1) {
-      if (this.opts.debug) logger.info('Only one key provided:', keys[0], '\n');
+      if (this.opts.debug) logger.debug('Only one key provided:', keys[0], '\n');
       const val = this.getParamMetaValue(keys[0], params, meta);
-      if (this.opts.debug) logger.info(`${keys[0]} value:`, val);
+      if (this.opts.debug) logger.debug(`${keys[0]} value:`, val);
       return keyPrefix + this._hashedKey(_.isObject(val) ? this._generateKeyFromObject(val) : val);
     }
 
     // Multiple keys
-    if (this.opts.debug) logger.info('Multiple keys provided:', keys.join(', '), '\n');
+    if (this.opts.debug) logger.debug('Multiple keys provided:', keys.join(', '));
 
     const combinedValue = keys.reduce((acc, key, i) => {
       const val = this.getParamMetaValue(key, params, meta);
-      if (this.opts.debug) logger.info(`${key} value:`, val);
+      if (this.opts.debug) logger.debug(`${key} value:`, val);
 
       const valueStr = _.isObject(val) || Array.isArray(val) ? this._hashedKey(this._generateKeyFromObject(val)) : val;
 
@@ -371,25 +370,25 @@ export const cache = (options) => async (req, res, next) => {
   try {
     // Get cache data
     const key = cacher.generateCacheKey(options.key, req, options.keys || []);
-    if (cacher.opts.debug) logger.info('Cache key', key);
+    if (cacher.opts.debug) logger.debug('Cache key', key);
 
     const cachedData = await cacher.get(key);
     if (cachedData) {
-      if (cacher.opts.debug) logger.info('Cache found');
+      if (cacher.opts.debug) logger.debug('Cache found');
 
       req.context.$action.isCache = true;
       return res.json(cachedData); // Return cached data and stop middleware chain
     }
 
     if (cacher.opts.debug) {
-      logger.info('No cache found');
-      logger.info('Cache miss - continuing to handler');
+      logger.debug('No cache found');
+      logger.debug('Cache miss - continuing to handler');
     }
 
     next(); // Only call next() if no cache was found
   } catch (error) {
     logger.error('Error in cache middleware:', error);
-    next(); // Continue to handler on error
+    next(error); // Continue to handler on error
   }
 };
 
@@ -431,7 +430,7 @@ export const cacheMiddleware = (req, res, next) => {
       try {
         await cacher.set(cacheKey, data, ttl);
         if (cacher.opts.debug) {
-          logger.info('Cached data saved...');
+          logger.debug('Cached data saved...');
         }
       } catch (error) {
         logger.error('Error saving cache:', error);
