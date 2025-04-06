@@ -7,8 +7,7 @@ import createContextMiddleware from './middleware/createContextMiddleware.js';
 import errorHandler from './middleware/errorMiddleware.js';
 
 import initRoutes from './routes/index.js';
-import { NotFoundError } from './utils/errors.js';
-import Cacher, { saveCacheMiddleware } from './utils/cacher.js';
+import Cacher, { cacheMiddleware } from './utils/cacher.js';
 
 // Initialize Express app
 const app = express();
@@ -27,34 +26,13 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 app.use(helmet());
 // Middleware to create context for each request
-app.use(
-  createContextMiddleware({
-    cacheOptions: null,
-    cacher: cacher,
-    isCache: false,
-  })
-);
+app.use(createContextMiddleware({ cacher }));
 // Middleware to log requests
 app.use(winstonMiddleware);
 // Middleware to set cache
-app.use(saveCacheMiddleware);
+app.use(cacheMiddleware);
 
 initRoutes(app);
-
-// Clear all caches
-app.get('/clear-cache', async (req, res) => {
-  try {
-    await req.context.cacher.del(req.context.params.key);
-    res.status(200).json({ message: 'Cache cleared successfully' });
-  } catch (error) {
-    res.status(500).json({ message: 'Error clearing cache', error });
-  }
-});
-
-// Handle 404 - Route not found (using our custom error)
-app.use((req, res, next) => {
-  next(new NotFoundError('The requested resource was not found on this server', 'RESOURCE_NOT_FOUND'));
-});
 
 app.use(errorHandler);
 
