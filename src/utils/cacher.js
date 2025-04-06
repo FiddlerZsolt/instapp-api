@@ -29,7 +29,7 @@ import { logger } from './logger.js';
 export default class Cacher {
   constructor(opts) {
     this.opts = {
-      prefix: 'API:',
+      prefix: 'API',
       maxParamsLength: 1000,
       port: 6379,
       host: '127.0.0.1',
@@ -40,6 +40,11 @@ export default class Cacher {
       debug: process.env.REDIS_DEBUG === 'true',
       ...opts,
     };
+
+    // Add ':' to the prefix if it doesn't already exist
+    if (this.opts.prefix && !this.opts.prefix.endsWith(':')) {
+      this.opts.prefix += ':';
+    }
 
     if (this.opts.debug) {
       logger.info(`${chalk.red('Redis')} client starts in ${chalk.bgBlue(' debug ')} mode`);
